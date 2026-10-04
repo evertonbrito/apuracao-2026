@@ -191,6 +191,7 @@ const fP=n=>isNaN(n)?"–":n.toLocaleString("pt-BR",{minimumFractionDigits:2,max
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const CORES={PT:"#d62828",PL:"#e8731a",REPUBLICANOS:"#1aa39a",PSOL:"#c2185b",PSD:"#f2a900",MDB:"#2e7d32",UNIÃO:"#1565c0",UNIAO:"#1565c0",PP:"#3949ab",PSDB:"#1e88e5",PSB:"#f4511e",PDT:"#c62828",NOVO:"#ff8f00",REDE:"#00897b",PODE:"#5e35b1",PCDOB:"#b71c1c",AVANTE:"#00838f",SOLIDARIEDADE:"#ef6c00",PV:"#43a047",CIDADANIA:"#ad1457",PRD:"#283593",DC:"#0d47a1",UP:"#b71c1c",PCO:"#8e0000",PSTU:"#c62828",MOBILIZA:"#6a1b9a",AGIR:"#00695c",PMB:"#6d4c41"};
 function cor(p){const k=String(p).toUpperCase().replace(/\s+/g,"");if(CORES[k])return CORES[k];let h=0;for(const ch of k)h=(h*31+ch.charCodeAt(0))%360;return `hsl(${h} 60% 45%)`}
+function fotoErr(img,t){if(!img.dataset.p){img.dataset.p=1;img.src="https://api.allorigins.win/raw?url="+encodeURIComponent(img.src)}else img.parentNode.textContent=t}
 const ini=n=>String(n).split(/\s+/).filter(Boolean).slice(0,2).map(s=>s[0]).join("");
 const hora=()=>new Date().toLocaleTimeString("pt-BR");
 
@@ -252,7 +253,7 @@ function render(){
     const fsrc=foto(c.sq);
     return `<li class="c${i<corte?" in":""}" style="--pc:${p}">
       <div class="rank">${i+1}º</div>
-      <div class="ph">${fsrc?`<img src="${esc(fsrc)}" alt="" loading="lazy" onerror="this.parentNode.textContent='${esc(ini(c.nome))}'">`:esc(ini(c.nome))}</div>
+      <div class="ph">${fsrc?`<img src="${esc(fsrc)}" alt="" referrerpolicy="no-referrer" onerror="fotoErr(this,'${esc(ini(c.nome))}')">`:esc(ini(c.nome))}</div>
       <div class="who"><b>${esc(c.nome)}</b><div class="meta"><span class="pt"><i></i>${esc(c.partido)}</span><span>Nº ${esc(c.n)}</span></div>${chip}<div class="mini"><i style="width:${Math.min(100,c.pct||0)}%"></i></div></div>
       <div class="res num"><b>${fP(c.pct)}<small>%</small></b><span>${fN(c.votos)} votos</span>${arrow}</div>
     </li>`}).join("")||(d?`<li class="msg">Ainda não há candidatos neste arquivo.</li>`:"");
