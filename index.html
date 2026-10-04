@@ -99,6 +99,9 @@ svg text{font-family:var(--f)}
 .msg{background:#fff4e5;border:1px solid #f3c27a;color:#7a4a00;border-radius:10px;padding:12px;font-size:12.5px}
 .msg.err{background:#fdecea;border-color:#f1a59c;color:#8a1c12}
 .msg:empty{display:none}
+[hidden]{display:none!important}
+.stale{display:flex;gap:8px;align-items:center;font-weight:700}
+.stale::before{content:"";flex:0 0 9px;height:9px;border-radius:50%;background:#e88a1a}
 footer{font:600 10.5px/1.5 var(--f);color:var(--muted);text-align:center;padding:4px 16px 20px}
 footer button{font:700 10.5px var(--f);border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:5px 10px;margin:6px 4px 0;cursor:pointer}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -115,6 +118,7 @@ footer button{font:700 10.5px var(--f);border:1px solid var(--line);background:v
 
 <main>
   <div class="msg" id="msg" role="status"></div>
+  <div class="msg stale" id="stale" hidden></div>
   <section class="band"><div><small id="bandCargo">PRESIDENTE</small><h2 id="bandUf">BRASIL</h2></div><div class="vagas" id="vagas"></div></section>
 
   <div class="grid2">
@@ -192,6 +196,8 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const CORES={PT:"#d62828",PL:"#e8731a",REPUBLICANOS:"#1aa39a",PSOL:"#c2185b",PSD:"#f2a900",MDB:"#2e7d32",UNIÃO:"#1565c0",UNIAO:"#1565c0",PP:"#3949ab",PSDB:"#1e88e5",PSB:"#f4511e",PDT:"#c62828",NOVO:"#ff8f00",REDE:"#00897b",PODE:"#5e35b1",PCDOB:"#b71c1c",AVANTE:"#00838f",SOLIDARIEDADE:"#ef6c00",PV:"#43a047",CIDADANIA:"#ad1457",PRD:"#283593",DC:"#0d47a1",UP:"#b71c1c",PCO:"#8e0000",PSTU:"#c62828",MOBILIZA:"#6a1b9a",AGIR:"#00695c",PMB:"#6d4c41"};
 function cor(p){const k=String(p).toUpperCase().replace(/\s+/g,"");if(CORES[k])return CORES[k];let h=0;for(const ch of k)h=(h*31+ch.charCodeAt(0))%360;return `hsl(${h} 60% 45%)`}
 function fotoErr(img,t){if(!img.dataset.p){img.dataset.p=1;img.src="https://api.allorigins.win/raw?url="+encodeURIComponent(img.src)}else img.parentNode.textContent=t}
+function idadeMin(d){const dg=deep(d,["dg"]),hg=deep(d,["hg"]);if(!dg||!hg)return NaN;const[dd,mm,yy]=String(dg).split("/");const t=Date.parse(`${yy}-${mm}-${dd}T${hg}-03:00`);return (Date.now()-t)/60000}
+const fIdade=m=>m<60?`${Math.floor(m)} min`:`${Math.floor(m/60)}h${String(Math.floor(m%60)).padStart(2,"0")}`;
 const ini=n=>String(n).split(/\s+/).filter(Boolean).slice(0,2).map(s=>s[0]).join("");
 const hora=()=>new Date().toLocaleTimeString("pt-BR");
 
@@ -268,8 +274,12 @@ function render(){
 
   drawChart(list.slice(0,3),h);
   const tot=d?`${deep(d,["dg"])||""} ${deep(d,["hg"])||""}`.trim():"";
+  drawStale();
   $("fonte").textContent=`Fonte: TSE${tot?" · totalização "+tot:""}${S.coletado?" · coletado "+S.coletado:""}${d?" · "+ROTAS[S.rota].nome:""}`;
 }
+function drawStale(){const d=S.data,el=$("stale");const m=d?idadeMin(d):NaN;
+  if(m>=10){el.hidden=false;el.textContent=`TSE sem atualização há ${fIdade(m)} · última totalização às ${String(deep(d,["hg"])).slice(0,5)}`}else el.hidden=true}
+setInterval(drawStale,60000);
 $("rest").addEventListener("click",e=>{if(e.target.id==="more"){S.showAll=true;render()}});
 
 function drawChart(top3,h){
