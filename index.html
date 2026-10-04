@@ -159,8 +159,8 @@ const CARGOS=[[1,"Presidente"],[3,"Governador"],[5,"Senador"],[6,"Deputado Feder
 const VAGAS={1:1,3:1,5:2};
 // O TSE não libera leitura por outros sites (sem cabeçalho CORS), então a leitura passa por um intermediário público.
 const ROTAS=[
-  {nome:"via allorigins",f:u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u)},
-  {nome:"TSE direto",f:u=>u},
+  {nome:"TSE direto",f:u=>u,ms:10000},
+  {nome:"via allorigins",f:u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),ms:40000},
 ];
 const $=id=>document.getElementById(id);
 const S={cargo:1,uf:"br",sim:false,rota:0,data:null,prev:{},timer:null,showAll:false,coletado:null};
@@ -291,19 +291,19 @@ function drawChart(top3,h){
 /* leitura */
 let busy=false;
 async function fetchData(manual){
-  if(busy)return;busy=true;
+  if(busy)return;busy=true;if(!S.data)msg("Buscando dados do TSE…");
   const u=url(), order=[S.rota,...ROTAS.map((_,i)=>i).filter(i=>i!==S.rota)];
   let last="";
   for(const i of order){
     try{
-      const r=await fetch(ROTAS[i].f(u),{cache:"no-cache"});
+      const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ROTAS[i].ms);const r=await fetch(ROTAS[i].f(u),{cache:"no-cache",signal:ac.signal}).finally(()=>clearTimeout(to));
       if(r.status===404){msg("O TSE ainda não publicou este arquivo. A atualização automática foi pausada; toque em “Atualizar agora” daqui a alguns minutos.",true);stopAuto();busy=false;return}
       if(!r.ok){last=`${ROTAS[i].nome}: HTTP ${r.status}`;continue}
       const txt=await r.text();let d;try{d=JSON.parse(txt)}catch(e){last=`${ROTAS[i].nome}: resposta inválida`;continue}
       S.data=d;S.rota=i;S.coletado=hora();persist();
       pushHist(d,cands(d));msg("");$("dot").classList.remove("off");render();
       if(!S.timer)startAuto();busy=false;return;
-    }catch(e){last=`${ROTAS[i].nome}: ${e.message}`}
+    }catch(e){last=`${ROTAS[i].nome}: ${e.name==="AbortError"?"tempo esgotado":e.message}`}
   }
   $("dot").classList.add("off");
   msg(`Não consegui ler os dados do TSE por nenhum caminho (${last}). Confira a internet e toque em “Atualizar agora”.`,true);
