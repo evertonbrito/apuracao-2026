@@ -206,7 +206,7 @@ function drawTabs(){
   $("bandUf").textContent=UF_NOME[S.uf.toUpperCase()]||S.uf.toUpperCase();
   $("simBtn").textContent="Ambiente: "+(S.sim?"simulado":"oficial");
 }
-$("cargos").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;S.cargo=+b.dataset.c;change()});
+$("cargos").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;S.cargo=+b.dataset.c;if(S.cargo===1)S.uf="br";change()});
 $("ufs").addEventListener("click",e=>{const b=e.target.closest("[data-u]");if(!b)return;S.uf=b.dataset.u;change()});
 function change(){S.data=null;S.showAll=false;persist();drawTabs();render();fetchData(true)}
 function persist(){save("ap26",{cargo:S.cargo,uf:S.uf,sim:S.sim,rota:S.rota})}
