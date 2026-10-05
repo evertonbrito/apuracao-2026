@@ -241,6 +241,45 @@ footer>div:last-child{display:flex;gap:var(--s2)}
 .gar::before{content:"✓";color:var(--up);font-weight:900}
 @media (min-width:600px){.band h2{font-size:40px}.big{font-size:var(--t32)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---------- desktop ---------- */
+.colA,.colB{display:contents}
+#painelView>.band{order:0}.colB>.grid2{order:1}.colA>#top{order:2}.colA>#rest{order:3}.colB>.box{order:4}.colB>.votos{order:5}
+@media (min-width:1024px){
+  :root{--gut:max(32px,calc((100vw - 1232px)/2))}
+  .top{grid-template-columns:1fr auto 1fr;align-items:center;padding:var(--s3) var(--gut)}
+  .brand{grid-column:1;grid-row:1}
+  #views{grid-column:2;grid-row:1;width:400px}
+  .pst{grid-column:3;grid-row:1}
+  .tabs{padding-left:var(--gut);padding-right:var(--gut)}
+  #cargos{padding-top:var(--s4)}
+  .ufs{overflow:visible;gap:var(--s1)}
+  .ufs .tab{flex:1 1 0;min-width:0;padding:var(--s1) 0;text-align:center}
+  main{max-width:none;padding:var(--s4) var(--gut) var(--s5);gap:var(--s4)}
+  .stack{gap:var(--s4)}
+  .band{padding:var(--s4) var(--s4) 28px}
+  .band h2{font-size:44px}
+  #painelView{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:start}
+  #painelView>.band{grid-column:1/-1}
+  .colA,.colB{display:grid;gap:var(--s3);align-content:start;min-width:0}
+  .colA{grid-column:1;grid-row:2}
+  .colB{grid-column:2;grid-row:2;position:sticky;top:96px}
+  .c{grid-template-columns:40px 56px minmax(0,1fr) auto;gap:var(--s3);padding:20px var(--s4) 20px 0}
+  .ph{width:56px;height:68px}
+  .who b{font-size:var(--t16)}
+  .res b{font-size:var(--t32)}
+  .res span{font-size:var(--t12)}
+  .rest{padding:0 var(--s4)}
+  .r{font-size:var(--t14)}
+  .box{padding:20px var(--s4)}
+  .box h3{font-size:var(--t16);margin-bottom:12px}
+  #mapView{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:start}
+  #mapView>#senSum{grid-column:1/-1}
+  #mapDetail{position:sticky;top:96px;max-height:calc(100vh - 120px);overflow:auto}
+  .map svg{max-height:72vh}
+  #compView{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  #compView>.band,#compView>.note,#compView>.box:last-of-type{grid-column:1/-1}
+  footer{padding:var(--s4) var(--gut) var(--s5)}
+}
 </style>
 </head>
 <body>
@@ -258,6 +297,7 @@ footer>div:last-child{display:flex;gap:var(--s2)}
   <div id="painelView" class="stack">
   <section class="band"><div><small id="bandCargo">Presidente</small><h2 id="bandUf">Brasil</h2></div><div class="vagas" id="vagas"></div></section>
 
+  <div class="colB">
   <div class="grid2">
     <div class="box">
       <h3>Seções apuradas</h3>
@@ -273,8 +313,6 @@ footer>div:last-child{display:flex;gap:var(--s2)}
     </div>
   </div>
 
-  <ol id="top"></ol>
-  <div class="rest" id="rest" hidden></div>
 
   <section class="box">
     <h3>Evolução dos três primeiros</h3>
@@ -286,6 +324,11 @@ footer>div:last-child{display:flex;gap:var(--s2)}
     <h3>Votos</h3>
     <dl id="votos"></dl>
   </section>
+  </div>
+  <div class="colA">
+  <ol id="top"></ol>
+  <div class="rest" id="rest" hidden></div>
+  </div>
   </div>
   <section id="mapView" class="stack" hidden>
     <div class="box" id="senSum" hidden></div>
