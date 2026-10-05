@@ -104,6 +104,28 @@ svg text{font-family:var(--f)}
 .stale::before{content:"";flex:0 0 9px;height:9px;border-radius:50%;background:#e88a1a}
 footer{font:600 10.5px/1.5 var(--f);color:var(--muted);text-align:center;padding:4px 16px 20px}
 footer button{font:700 10.5px var(--f);border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:5px 10px;margin:6px 4px 0;cursor:pointer}
+.stack{display:grid;gap:12px}
+.crumb{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font:800 13px var(--f);margin-bottom:8px;color:var(--muted)}
+.crumb button{border:0;background:none;color:var(--navy);font:800 13px var(--f);padding:2px 0;cursor:pointer;text-decoration:underline}
+.crumb span{color:var(--ink)}
+#citySearch{width:100%;font:600 15px var(--f);padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:var(--card);color:var(--ink)}
+.map svg{display:block;width:100%;height:auto;max-height:62vh}
+.map path{stroke:#fff;stroke-width:.35;cursor:pointer;fill:var(--track);transition:fill-opacity .3s}
+.map path.sel{stroke:var(--ink);stroke-width:1.4}
+.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
+.dhead{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline;margin-bottom:8px}
+.dhead b{font:900 16px var(--f);text-transform:uppercase}
+.dhead span{font-size:11px;color:var(--muted);font-weight:700}
+.drow{display:grid;grid-template-columns:24px 1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
+.drow:last-child{border-bottom:0}
+.drow .n{font-weight:800;color:var(--muted)}
+.drow .nm{min-width:0;font-weight:800;overflow-wrap:anywhere}
+.drow .nm small{color:var(--muted);font-weight:700}
+.dbar{display:block;height:4px;background:var(--track);border-radius:4px;margin-top:4px;overflow:hidden}
+.dbar i{display:block;height:100%;background:var(--pc)}
+.drow .p{font-weight:900}
+.drow .v{color:var(--muted);min-width:58px;text-align:right}
+.legend b{font-weight:900}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -113,12 +135,14 @@ footer button{font:700 10.5px var(--f);border:1px solid var(--line);background:v
   <div class="live"><i class="dot" id="dot"></i><div class="pst"><b class="num" id="pstTop">–</b><span>APURADO</span></div></div>
 </header>
 
+<nav class="tabs" id="views" aria-label="Visualização"><button class="tab" data-v="painel" aria-pressed="true">Painel</button><button class="tab" data-v="mapa" aria-pressed="false">Mapa</button></nav>
 <nav class="tabs" id="cargos" aria-label="Cargo"></nav>
 <nav class="tabs ufs" id="ufs" aria-label="Estado"></nav>
 
 <main>
   <div class="msg" id="msg" role="status"></div>
   <div class="msg stale" id="stale" hidden></div>
+  <div id="painelView" class="stack">
   <section class="band"><div><small id="bandCargo">PRESIDENTE</small><h2 id="bandUf">BRASIL</h2></div><div class="vagas" id="vagas"></div></section>
 
   <div class="grid2">
@@ -148,6 +172,18 @@ footer button{font:700 10.5px var(--f);border:1px solid var(--line);background:v
   <section class="box votos">
     <h3>Votos</h3>
     <dl id="votos"></dl>
+  </section>
+  </div>
+  <section id="mapView" class="stack" hidden>
+    <div class="box">
+      <div class="crumb" id="crumb"></div>
+      <div id="cityBox" hidden><input id="citySearch" list="cityList" type="search" placeholder="Buscar cidade…" autocomplete="off" aria-label="Buscar cidade"><datalist id="cityList"></datalist></div>
+      <div id="mapSvg" class="map"></div>
+      <p class="hint" id="mapCap"></p>
+      <div class="legend" id="mapLegend"></div>
+      <p class="hint num" id="mapStatus"></p>
+    </div>
+    <div class="box" id="mapDetail"></div>
   </section>
 </main>
 
@@ -214,8 +250,8 @@ function drawTabs(){
 }
 $("cargos").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;S.cargo=+b.dataset.c;if(S.cargo===1)S.uf="br";change()});
 $("ufs").addEventListener("click",e=>{const b=e.target.closest("[data-u]");if(!b)return;S.uf=b.dataset.u;change()});
-function change(){S.data=null;S.showAll=false;persist();drawTabs();render();fetchData(true)}
-function persist(){save("ap26",{cargo:S.cargo,uf:S.uf,sim:S.sim,rota:S.rota})}
+function change(){S.data=null;S.showAll=false;persist();drawTabs();render();fetchData(true);if(S.view==="mapa"){M.city=null;if(S.cargo===8)M.uf="df";else if(S.cargo===7&&M.uf==="df")M.uf=null;loadMap()}}
+function persist(){save("ap26",{cargo:S.cargo,uf:S.uf,sim:S.sim,rota:S.rota,view:S.view})}
 
 /* histórico para o gráfico e para as setas de variação */
 const hkey=()=>`h26:${S.sim?"s":"o"}:${S.cargo}:${S.uf}`;
@@ -324,10 +360,156 @@ function msg(t,err){$("msg").textContent=t;$("msg").className="msg"+(err?" err":
 function startAuto(){clearInterval(S.timer);S.timer=setInterval(()=>{if(!document.hidden)fetchData()},30000)}
 function stopAuto(){clearInterval(S.timer);S.timer=null}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.timer)fetchData()});
-$("refresh").addEventListener("click",()=>{fetchData(true);startAuto()});
-$("simBtn").addEventListener("click",()=>{S.sim=!S.sim;change()});
+$("refresh").addEventListener("click",()=>{fetchData(true);startAuto();if(S.view==="mapa")loadMap(true)});
+$("simBtn").addEventListener("click",()=>{S.sim=!S.sim;M.cm=null;change()});
 
-drawTabs();render();fetchData(true);startAuto();
+/* ===== mapa ===== */
+const UF_IBGE={11:"RO",12:"AC",13:"AM",14:"RR",15:"PA",16:"AP",17:"TO",21:"MA",22:"PI",23:"CE",24:"RN",25:"PB",26:"PE",27:"AL",28:"SE",29:"BA",31:"MG",32:"ES",33:"RJ",35:"SP",41:"PR",42:"SC",43:"RS",50:"MS",51:"MT",52:"GO",53:"DF"};
+const M={uf:null,city:null,geo:{},res:{},cm:null,tok:0,timer:null,nameOf:k=>k};
+const pad=(n,k)=>String(n).padStart(k,"0");
+function arqUrl(abr,uf){const c=code();return `${env().base}/${c}/dados/${uf}/${abr}-c${pad(S.cargo,4)}-e${pad(c,6)}-u.json`}
+async function getJSON(u,ms){
+  let last;
+  for(let i=0;i<ROTAS.length;i++){
+    try{const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ms||ROTAS[i].ms);
+      const r=await fetch(ROTAS[i].f(u),{signal:ac.signal}).finally(()=>clearTimeout(to));
+      if(r.status===404){const e=new Error("ainda não publicado");e.status=404;throw e}
+      if(!r.ok){last=new Error("HTTP "+r.status);continue}
+      return await r.json();
+    }catch(e){if(e.status===404)throw e;last=e}
+  }
+  throw last||new Error("falha");
+}
+const resumo=d=>({pst:num(deep(d,["pst"])),hg:deep(d,["hg"]),top:cands(d).slice(0,8)});
+const rkey=k=>`${S.sim?"s":"o"}:${S.cargo}:${k}`;
+async function cmLoad(){
+  if(M.cm)return M.cm;const e=env();
+  const d=await getJSON(`${e.base}/${e.fed}/config/mun-e${pad(e.fed,6)}-cm.json`,30000);
+  const by={},byIbge={};
+  for(const u of d.abr){by[u.cd]=(u.mu||[]).map(m=>({cd:m.cd,nm:m.nm}));for(const m of (u.mu||[]))byIbge[m.cdi]=u.cd+m.cd}
+  return M.cm={by,byIbge};
+}
+async function geo(uf){
+  const k=uf||"BR";if(M.geo[k])return M.geo[k];
+  const u=uf?`https://servicodados.ibge.gov.br/api/v3/malhas/estados/${uf.toUpperCase()}?formato=application/vnd.geo%2Bjson&intrarregiao=municipio&qualidade=minima`
+           :`https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=application/vnd.geo%2Bjson&intrarregiao=UF&qualidade=minima`;
+  return M.geo[k]=await getJSON(u,30000);
+}
+function svgFrom(g,keyOf){
+  const rings=f=>f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
+  let x0=180,x1=-180,y0=90,y1=-90;
+  g.features.forEach(f=>rings(f).forEach(p=>p.forEach(r=>r.forEach(([x,y])=>{if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}))));
+  const k=Math.cos((y0+y1)/2*Math.PI/180),W=360,sx=W/((x1-x0)*k),H=Math.max(1,Math.round((y1-y0)*sx));
+  const P=([x,y])=>((x-x0)*k*sx).toFixed(1)+","+((y1-y)*sx).toFixed(1);
+  const paths=g.features.map(f=>{const key=keyOf(f.properties.codarea);if(!key)return"";
+    const d=rings(f).map(p=>p.map(r=>"M"+r.map(P).join("L")+"Z").join("")).join("");
+    return `<path data-k="${key}" d="${d}"><title></title></path>`}).join("");
+  return `<svg viewBox="-2 -2 ${W+4} ${H+4}" role="img" aria-label="Mapa de votação">${paths}</svg>`;
+}
+function paint(p){
+  const r=M.res[rkey(p.dataset.k)]?.r,L=r&&r.top[0];
+  if(!L||!(L.votos>0)){p.style.fill="";p.style.fillOpacity="";return}
+  p.style.fill=cor(L.partido);p.style.fillOpacity=Math.max(.3,Math.min(1,(L.pct-20)/45));
+}
+function legend(keys){
+  const cnt={};keys.forEach(k=>{const L=M.res[rkey(k)]?.r?.top[0];if(L&&L.votos>0)(cnt[L.nome]=cnt[L.nome]||{n:0,p:L.partido}).n++});
+  $("mapLegend").innerHTML=Object.entries(cnt).sort((a,b)=>b[1].n-a[1].n).slice(0,6)
+    .map(([nm,o])=>`<span style="--pc:${cor(o.p)}"><i></i>${esc(nm)} <b class="num">${o.n}</b></span>`).join("");
+}
+function drawCrumb(){
+  let h=`<button data-go="br">Brasil</button>`;
+  if(M.uf)h+=` › <button data-go="uf">${esc(UF_NOME[M.uf.toUpperCase()])}</button>`;
+  if(M.city)h+=` › <span>${esc(M.nameOf(M.city))}</span>`;
+  $("crumb").innerHTML=h;$("cityBox").hidden=!M.uf;
+}
+function markSel(){
+  const svg=$("mapSvg");svg.querySelectorAll("path.sel").forEach(p=>p.classList.remove("sel"));
+  if(M.city){const p=svg.querySelector(`path[data-k="${M.city}"]`);if(p){p.classList.add("sel");p.parentNode.appendChild(p)}}
+  drawCrumb();
+}
+async function renderDetail(){
+  const el=$("mapDetail");let k,title;
+  if(M.city){k=M.city;title=M.nameOf(k)+" · "+M.uf.toUpperCase()}
+  else if(M.uf){k=M.uf;title=UF_NOME[M.uf.toUpperCase()]}
+  else{el.innerHTML=`<p class="hint" style="margin:0">Toque num estado para ver as cidades e os votos de cada uma.</p>`;return}
+  const e=M.res[rkey(k)];
+  if(!e){
+    el.innerHTML=`<p class="hint" style="margin:0">Carregando ${esc(title)}…</p>`;
+    try{const d=await getJSON(M.city?arqUrl(k,M.uf):arqUrl(k,k));M.res[rkey(k)]={t:Date.now(),r:resumo(d)}}catch(_){M.res[rkey(k)]={t:Date.now(),r:null}}
+    const p=$("mapSvg").querySelector(`path[data-k="${k}"]`);if(p)paint(p);
+    if(k===(M.city||M.uf))renderDetail();return;
+  }
+  if(!e.r||!e.r.top.length){el.innerHTML=`<div class="dhead"><b>${esc(title)}</b></div><p class="hint" style="margin:0">Ainda sem votos publicados aqui.</p>`;return}
+  const r=e.r,max=Math.max(...r.top.map(c=>c.pct||0),1);
+  el.innerHTML=`<div class="dhead"><b>${esc(title)}</b><span class="num">${fP(r.pst)}% das seções · ${esc(String(r.hg||"").slice(0,5))}</span></div>`+
+    r.top.slice(0,6).map((c,i)=>`<div class="drow" style="--pc:${cor(c.partido)}"><span class="n">${i+1}º</span><span class="nm">${esc(c.nome)} <small>${esc(c.partido)}</small><i class="dbar"><i style="width:${(c.pct||0)/max*100}%"></i></i></span><span class="p num">${fP(c.pct)}%</span><span class="v num">${fN(c.votos)}</span></div>`).join("");
+}
+async function loadMap(force){
+  const tok=++M.tok,box=$("mapSvg"),st=$("mapStatus");
+  drawCrumb();renderDetail();st.textContent="Carregando mapa…";
+  try{
+    let keys,urlOf,colorir=true;
+    if(!M.uf){
+      const g=await geo(null);if(tok!==M.tok)return;
+      box.innerHTML=svgFrom(g,c=>UF_IBGE[c]?.toLowerCase());
+      keys=Object.values(UF_IBGE).map(s=>s.toLowerCase()).filter(u=>S.cargo===8?u==="df":S.cargo===7?u!=="df":true);
+      urlOf=k=>arqUrl(k,k);M.nameOf=k=>UF_NOME[k.toUpperCase()]||k;
+      $("mapCap").textContent="A cor mostra quem lidera em cada estado. Toque num estado para ver as cidades.";
+    }else{
+      const[g,c]=await Promise.all([geo(M.uf),cmLoad()]);if(tok!==M.tok)return;
+      box.innerHTML=svgFrom(g,i=>c.byIbge[i]);
+      const list=c.by[M.uf]||[],nm={};list.forEach(m=>nm[M.uf+m.cd]=m.nm);
+      M.nameOf=k=>nm[k]||k;
+      $("cityList").innerHTML=list.map(m=>`<option value="${esc(m.nm)}"></option>`).join("");
+      keys=list.map(m=>M.uf+m.cd);urlOf=k=>arqUrl(k,M.uf);
+      if(S.cargo>=6){colorir=false;keys=M.city?[M.city]:[];
+        $("mapCap").textContent="Para deputados o mapa não é colorido, para economizar dados. Toque numa cidade ou busque pelo nome.";}
+      else $("mapCap").textContent="A cor mostra quem lidera em cada cidade. Toque numa cidade para ver os votos.";
+    }
+    box.querySelectorAll("path").forEach(p=>{p.querySelector("title").textContent=M.nameOf(p.dataset.k);paint(p)});
+    markSel();renderDetail();
+    const todo=keys.filter(k=>{const r=M.res[rkey(k)];return force||!r||Date.now()-r.t>110000});
+    let done=keys.length-todo.length;const total=keys.length;
+    const upd=()=>{st.textContent=!colorir?"":done<total?`Carregando ${done} de ${total} ${M.uf?"cidades":"estados"}…`:`Mapa atualizado às ${hora()}`};
+    upd();legend(keys);
+    let i=0;
+    const worker=async()=>{while(i<todo.length){const k=todo[i++];
+      try{const d=await getJSON(urlOf(k));if(tok!==M.tok)return;M.res[rkey(k)]={t:Date.now(),r:resumo(d)}}
+      catch(e){if(tok!==M.tok)return;if(!M.res[rkey(k)])M.res[rkey(k)]={t:Date.now(),r:null}}
+      done++;upd();const p=box.querySelector(`path[data-k="${k}"]`);if(p)paint(p);
+      if(k===(M.city||M.uf))renderDetail();
+      if(done%15===0)legend(keys);
+    }};
+    await Promise.all(Array.from({length:Math.min(6,todo.length)},worker));
+    if(tok!==M.tok)return;legend(keys);
+  }catch(e){if(tok===M.tok)st.textContent=`Não consegui carregar o mapa (${e.message}). Toque em “Atualizar agora”.`}
+}
+$("mapSvg").addEventListener("click",e=>{
+  const p=e.target.closest("path");if(!p)return;const k=p.dataset.k;
+  if(!M.uf){M.uf=k;M.city=null;$("citySearch").value="";loadMap()}
+  else{M.city=k;$("citySearch").value=M.nameOf(k);markSel();renderDetail()}
+});
+$("crumb").addEventListener("click",e=>{
+  const b=e.target.closest("[data-go]");if(!b)return;
+  if(b.dataset.go==="br"){M.uf=null;M.city=null}else M.city=null;
+  $("citySearch").value="";loadMap();
+});
+const semAcento=t=>String(t).normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase().trim();
+$("citySearch").addEventListener("change",e=>{
+  const v=semAcento(e.target.value);const list=M.cm?.by[M.uf]||[];
+  const c=list.find(m=>semAcento(m.nm)===v)||list.find(m=>semAcento(m.nm).startsWith(v));
+  if(c){M.city=M.uf+c.cd;e.target.value=c.nm;markSel();renderDetail()}
+});
+function setView(v){
+  S.view=v;persist();
+  $("painelView").hidden=v!=="painel";$("mapView").hidden=v!=="mapa";$("ufs").hidden=v==="mapa";
+  document.querySelectorAll("[data-v]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===v)));
+  clearInterval(M.timer);
+  if(v==="mapa"){loadMap();M.timer=setInterval(()=>{if(!document.hidden&&S.view==="mapa")loadMap()},M.uf?300000:120000)}
+}
+$("views").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(b)setView(b.dataset.v)});
+
+drawTabs();render();fetchData(true);startAuto();setView(S.view==="mapa"?"mapa":"painel");
 </script>
 </body>
 </html>
