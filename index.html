@@ -569,7 +569,7 @@ function senado(){
     <p class="hint">${fP(pstS/n)}% das seções apuradas, em média, nos ${n} estados. Uma vaga é “garantida” quando a vantagem sobre o 3º colocado é maior que os votos que ainda faltam apurar no estado. No mapa, listras indicam estados com as duas vagas divididas entre partidos.</p>`;
 }
 function legend(keys){senado();
-  const cnt={};keys.forEach(k=>{const L=M.res[rkey(k)]?.r?.top[0];if(L&&L.votos>0)(cnt[L.nome]=cnt[L.nome]||{n:0,p:L.partido}).n++});
+  const cnt={};keys.forEach(k=>{const L=M.res[rkey(k)]?.r?.top[0];if(L&&L.votos>0){const id=S.cargo===1?L.nome:L.partido;(cnt[id]=cnt[id]||{n:0,p:L.partido}).n++}});
   $("mapLegend").innerHTML=Object.entries(cnt).sort((a,b)=>b[1].n-a[1].n).slice(0,6)
     .map(([nm,o])=>`<span style="--pc:${cor(o.p)}"><i></i>${esc(nm)} <b class="num">${o.n}</b></span>`).join("");
 }
@@ -611,7 +611,7 @@ async function loadMap(force){
       box.innerHTML=svgFrom(g,c=>UF_IBGE[c]?.toLowerCase());siglas();
       keys=Object.values(UF_IBGE).map(s=>s.toLowerCase()).filter(u=>S.cargo===8?u==="df":S.cargo===7?u!=="df":true);
       urlOf=k=>arqUrl(k,k);M.nameOf=k=>UF_NOME[k.toUpperCase()]||k;
-      $("mapCap").textContent="A cor mostra quem lidera em cada estado. Toque num estado para ver as cidades.";
+      $("mapCap").textContent=S.cargo===1?"A cor mostra quem lidera em cada estado. Toque num estado para ver as cidades.":"A cor mostra o partido de quem lidera em cada estado; a legenda conta estados por partido. Toque num estado para ver as cidades.";
     }else{
       const[g,c]=await Promise.all([geo(M.uf),cmLoad()]);if(tok!==M.tok)return;
       box.innerHTML=svgFrom(g,i=>c.byIbge[i]);
