@@ -193,6 +193,52 @@ svg text{font-family:var(--f)}
 footer{font:600 var(--t12)/1.5 var(--f);color:var(--muted);text-align:center;padding:0 var(--s3) var(--s4);display:grid;gap:var(--s2);justify-items:center}
 footer button{font:700 var(--t12)/1 var(--f);border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:var(--s2) var(--s3);min-height:32px;cursor:pointer}
 footer>div:last-child{display:flex;gap:var(--s2)}
+.prow{display:grid;grid-template-columns:minmax(0,92px) minmax(0,1fr) auto 44px;gap:12px;align-items:center;padding:var(--s2) 0;border-bottom:1px solid var(--line)}
+.prow:last-of-type{border-bottom:0}
+.pn{min-width:0;display:grid;gap:2px}.pn b{font:800 var(--t14)/1.2 var(--f)}.pn small{font:600 11px/1.2 var(--f);color:var(--muted);overflow-wrap:break-word}
+.pbars{display:grid;gap:3px}.pb{display:block;height:8px;border-radius:4px;background:var(--pc)}.pb.old{background:var(--pc);opacity:.3;height:6px}
+.pv{text-align:right;display:grid;gap:2px}.pv b{font:800 var(--t14)/1 var(--f)}.pv small{font:600 11px/1.2 var(--f);color:var(--muted);white-space:nowrap}
+.pd{text-align:right;font:700 var(--t12)/1 var(--f)}
+.plegend{display:flex;gap:var(--s3);font:600 var(--t12)/1 var(--f);color:var(--muted);margin-bottom:var(--s2)}
+.plegend span{display:flex;align-items:center;gap:var(--s1)}.plegend i{width:16px;height:8px;border-radius:4px;background:var(--ink)}.plegend i.old{opacity:.3;height:6px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);margin-bottom:var(--s3)}
+.kpis>div{background:var(--bg);border-radius:var(--r1);padding:12px;display:grid;gap:var(--s1);align-content:start}
+.kpis small{font:600 var(--t12)/1.3 var(--f);color:var(--muted)}.kpis b{font:900 var(--t20)/1.1 var(--f)}
+.defrow{padding:12px 0;border-top:1px solid var(--line)}
+.defrow .dt{display:flex;justify-content:space-between;align-items:center;gap:var(--s2)}
+.defrow .dt b{font:700 var(--t14)/1.3 var(--f)}
+.defrow p{margin:var(--s1) 0 0;font-size:var(--t12);color:var(--muted);line-height:1.5}
+.pill{font:700 var(--t12)/1 var(--f);padding:6px 10px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--navy);color:#fff}.pill.open{background:#fff3cf;color:var(--accent-ink)}
+.sres{display:flex;justify-content:space-between;gap:var(--s2);margin-bottom:var(--s2)}
+.sres>div{display:grid;gap:2px}.sres small{font:700 var(--t12)/1.2 var(--f);color:var(--muted)}.sres b{font:900 var(--t24)/1 var(--f)}
+.sbar{height:12px;border-radius:999px;display:flex;overflow:hidden;gap:2px;background:var(--line)}
+.sbar span{display:block;height:100%;padding:0}
+.slist{display:grid;gap:var(--s2);background:var(--bg);border-radius:var(--r1);padding:12px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) 72px;gap:var(--s1) var(--s2);align-items:center}
+.srow .sl{grid-column:1/-1;display:flex;justify-content:space-between;gap:var(--s2);align-items:baseline}
+.srow .sl b{font:700 var(--t12)/1.2 var(--f)}.srow .sl small{font:600 11px/1 var(--f);color:var(--muted)}
+.srow input{width:100%;accent-color:var(--navy)}.srow .sv{font:700 11px/1 var(--f);color:var(--muted);text-align:right}
+.dax,.dax2{display:flex;justify-content:space-between;font:700 11px/1 var(--f);margin:var(--s2) 0;padding:0 52px 0 40px}
+.dax2{color:var(--faint);margin-top:var(--s1)}
+.drow2{display:grid;grid-template-columns:32px minmax(0,1fr) 44px 44px;gap:var(--s2);align-items:center;min-height:28px;font-size:var(--t12)}
+.drow2>b{font:800 var(--t12)/1 var(--f)}.drow2>span.num{text-align:right;font-weight:700}
+.dtrack{position:relative;height:16px}
+.dtrack .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)}
+.dtrack .seg{position:absolute;top:7px;height:2px;opacity:.5}
+.dtrack .d22,.dtrack .d26{position:absolute;top:3px;width:10px;height:10px;border-radius:50%;transform:translateX(-50%)}
+.dtrack .d22{border:2px solid var(--faint);background:var(--card);box-sizing:border-box}
+.drow2 .chip2{font-size:10px;padding:3px 6px;justify-self:end}
+.map .lbls{pointer-events:none}
+.map .lbls text{font:800 8px var(--f);fill:#fff;text-anchor:middle;paint-order:stroke;stroke:rgba(18,26,61,.55);stroke-width:2px}
+.map .lbls text.out{fill:var(--ink);stroke:#fff;stroke-width:2.5px;text-anchor:start}
+.map .lbls line{stroke:var(--faint);stroke-width:.6}
+.eyebrow{margin:0 0 var(--s1);font:600 var(--t12)/1.3 var(--f);color:var(--muted)}
+.sh{font:800 var(--t20)/1.25 var(--f)!important;margin:0 0 var(--s3)!important;text-wrap:balance}
+.seats{display:flex;gap:2px;height:16px;border-radius:4px;overflow:hidden;margin-bottom:var(--s2)}
+.seats span{display:block;height:100%}
+.gar{margin:var(--s3) 0 0!important;font:600 var(--t14)/1.3 var(--f)!important;color:var(--ink)!important;display:flex;gap:var(--s2);align-items:center}
+.gar::before{content:"✓";color:var(--up);font-weight:900}
 @media (min-width:600px){.band h2{font-size:40px}.big{font-size:var(--t32)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -242,6 +288,7 @@ footer>div:last-child{display:flex;gap:var(--s2)}
   </section>
   </div>
   <section id="mapView" class="stack" hidden>
+    <div class="box" id="senSum" hidden></div>
     <div class="box">
       <div class="crumb" id="crumb"></div>
       <div id="cityBox" hidden><input id="citySearch" list="cityList" type="search" placeholder="Buscar cidade…" autocomplete="off" aria-label="Buscar cidade"><datalist id="cityList"></datalist></div>
@@ -456,7 +503,7 @@ async function getJSON(u,ms){
   }
   throw last||new Error("falha");
 }
-const resumo=d=>({pst:num(deep(d,["pst"])),hg:deep(d,["hg"]),top:cands(d).slice(0,8)});
+const resumo=d=>{const l=cands(d);return{pst:num(deep(d,["pst"])),hg:deep(d,["hg"]),vt:l.reduce((s,c)=>s+(c.votos||0),0),top:l.slice(0,8)}};
 const rkey=k=>`${S.sim?"s":"o"}:${S.cargo}:${k}`;
 async function cmLoad(){
   if(M.cm)return M.cm;const e=env();
@@ -480,14 +527,48 @@ function svgFrom(g,keyOf){
   const paths=g.features.map(f=>{const key=keyOf(f.properties.codarea);if(!key)return"";
     const d=rings(f).map(p=>p.map(r=>"M"+r.map(P).join("L")+"Z").join("")).join("");
     return `<path data-k="${key}" d="${d}"><title></title></path>`}).join("");
-  return `<svg viewBox="-2 -2 ${W+4} ${H+4}" role="img" aria-label="Mapa de votação">${paths}</svg>`;
+  return `<svg viewBox="-2 -2 ${W+4} ${H+4}" role="img" aria-label="Mapa de votação"><defs></defs>${paths}<g class="lbls"></g></svg>`;
 }
 function paint(p){
   const r=M.res[rkey(p.dataset.k)]?.r,L=r&&r.top[0];
   if(!L||!(L.votos>0)){p.style.fill="";p.style.fillOpacity="";return}
-  p.style.fill=cor(L.partido);p.style.fillOpacity=Math.max(.3,Math.min(1,(L.pct-20)/45));
+  const L2=r.top[1];
+  if(S.cargo===5&&!M.uf&&L2&&L2.votos>0&&semAcento(L2.partido)!==semAcento(L.partido)){
+    p.style.fill=`url(#${listra(cor(L.partido),cor(L2.partido))})`;p.style.fillOpacity=1;return}
+  p.style.fill=cor(L.partido);p.style.fillOpacity=S.cargo===5&&!M.uf?1:Math.max(.3,Math.min(1,(L.pct-20)/45));
 }
-function legend(keys){
+function listra(a,b){
+  const id="st"+(a+b).replace(/[^a-z0-9]/gi,"");const defs=$("mapSvg").querySelector("defs");
+  if(defs&&!defs.querySelector("#"+id))defs.insertAdjacentHTML("beforeend",`<pattern id="${id}" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)"><rect width="3" height="6" fill="${a}"/><rect x="3" width="3" height="6" fill="${b}"/></pattern>`);
+  return id;
+}
+const FORA={rn:[18,-6],pb:[22,-1],pe:[24,4],al:[20,9],se:[16,13],es:[18,4],rj:[14,12],df:[0,0]};
+function siglas(){
+  const svg=$("mapSvg").querySelector("svg"),g=svg&&svg.querySelector(".lbls");if(!g)return;let h="";
+  svg.querySelectorAll("path").forEach(p=>{const k=p.dataset.k;let b;try{b=p.getBBox()}catch(_){return}
+    let x=b.x+b.width/2,y=b.y+b.height/2;if(k==="go"){x-=4;y+=4}if(k==="pa"){y+=4}if(k==="mg"){x-=3}
+    const o=FORA[k];
+    if(o&&(o[0]||o[1])){const tx=x+o[0],ty=y+o[1];h+=`<line x1="${x}" y1="${y}" x2="${tx-6}" y2="${ty-2}" />`;x=tx;y=ty}
+    h+=`<text x="${x}" y="${y+3}" ${o&&(o[0]||o[1])?'class="out"':""}>${k.toUpperCase()}</text>`});
+  g.innerHTML=h;
+}
+function senado(){
+  const box=$("senSum");if(!(S.cargo===5&&!M.uf&&S.view==="mapa")){box.hidden=true;return}
+  const ufs=Object.values(UF_IBGE).map(x=>x.toLowerCase());let vagas=[],gar=0,pstS=0,n=0;
+  for(const k of ufs){const r=M.res[rkey(k)]?.r;if(!r||r.top.length<2||!(r.top[0].votos>0))continue;n++;pstS+=r.pst||0;
+    const R=r.pst>0?r.vt*(100/r.pst-1):Infinity,ter=r.top[2]?.votos||0;
+    for(let i=0;i<2;i++){vagas.push(r.top[i].partido);if(r.top[i].votos-ter>R)gar++}}
+  if(!n){box.hidden=true;return}
+  const cnt={};vagas.forEach(p=>cnt[p]=(cnt[p]||0)+1);const ord=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);const tot=54;
+  box.hidden=false;
+  box.innerHTML=`<p class="eyebrow">Senado, ${tot} vagas em disputa (2 por estado)</p>
+    <h3 class="sh">${esc(ord[0][0])} à frente em ${ord[0][1]} das ${tot} vagas</h3>
+    <div class="seats">${ord.map(([p,c])=>`<span style="flex:${c};background:${cor(p)}" title="${esc(p)}: ${c}"></span>`).join("")}${vagas.length<tot?`<span style="flex:${tot-vagas.length};background:var(--track)"></span>`:""}</div>
+    <div class="legend">${ord.map(([p,c])=>`<span style="--pc:${cor(p)}"><i></i>${esc(p)} <b class="num">${c}</b></span>`).join("")}</div>
+    <p class="gar"><b class="num">${gar} de ${tot}</b> vagas já matematicamente garantidas</p>
+    <p class="hint">${fP(pstS/n)}% das seções apuradas, em média, nos ${n} estados. Uma vaga é “garantida” quando a vantagem sobre o 3º colocado é maior que os votos que ainda faltam apurar no estado. No mapa, listras indicam estados com as duas vagas divididas entre partidos.</p>`;
+}
+function legend(keys){senado();
   const cnt={};keys.forEach(k=>{const L=M.res[rkey(k)]?.r?.top[0];if(L&&L.votos>0)(cnt[L.nome]=cnt[L.nome]||{n:0,p:L.partido}).n++});
   $("mapLegend").innerHTML=Object.entries(cnt).sort((a,b)=>b[1].n-a[1].n).slice(0,6)
     .map(([nm,o])=>`<span style="--pc:${cor(o.p)}"><i></i>${esc(nm)} <b class="num">${o.n}</b></span>`).join("");
@@ -522,12 +603,12 @@ async function renderDetail(){
 }
 async function loadMap(force){
   const tok=++M.tok,box=$("mapSvg"),st=$("mapStatus");
-  drawCrumb();renderDetail();st.textContent="Carregando mapa…";
+  drawCrumb();renderDetail();senado();st.textContent="Carregando mapa…";
   try{
     let keys,urlOf,colorir=true;
     if(!M.uf){
       const g=await geo(null);if(tok!==M.tok)return;
-      box.innerHTML=svgFrom(g,c=>UF_IBGE[c]?.toLowerCase());
+      box.innerHTML=svgFrom(g,c=>UF_IBGE[c]?.toLowerCase());siglas();
       keys=Object.values(UF_IBGE).map(s=>s.toLowerCase()).filter(u=>S.cargo===8?u==="df":S.cargo===7?u!=="df":true);
       urlOf=k=>arqUrl(k,k);M.nameOf=k=>UF_NOME[k.toUpperCase()]||k;
       $("mapCap").textContent="A cor mostra quem lidera em cada estado. Toque num estado para ver as cidades.";
@@ -606,63 +687,111 @@ async function loadComp(force){
 const dpp=d=>isNaN(d)?"":`<span class="${d>=0?"up":"down"}">${d>=0?"+":"−"}${fP(Math.abs(d))}</span>`;
 function renderComp(){
   const B=C.uf.br?.r;if(!B||!D22){$("compBr").innerHTML=`<p class="note">Sem dados de 2026 ainda.</p>`;return}
-  $("compSt").textContent=`${fP(B.pst)}% apurado · ${String(B.hg||"").slice(0,5)}`;
-  const v26=B.c,t26=soma(Object.fromEntries(Object.entries(v26).map(([n,x])=>[n,x[0]]))),v22=D22.br["1"],t22=soma(v22);
-  const nums=[...new Set([...Object.keys(v26).sort((a,b)=>v26[b][0]-v26[a][0]),...Object.keys(v22).filter(n=>v22[n]/t22>.01)])];
+  $("compSt").textContent=`${fP(B.pst)}% apurado, totalização às ${String(B.hg||"").slice(0,5)}`;
+  const vot=c=>Object.fromEntries(Object.entries(c).map(([n,x])=>[n,x[0]]));
+  const v26=B.c,t26=soma(vot(v26)),v22=D22.br["1"],t22=soma(v22);
+  const ordem=Object.keys(v26).sort((a,b)=>v26[b][0]-v26[a][0]);
   const mesmo=n=>!v26[n]||!D22.cand[n]||semAcento(v26[n][2])===semAcento(D22.cand[n][1]);
+
+  /* ---- Brasil por partido ---- */
+  const nums=[...new Set([...ordem,...Object.keys(v22).filter(n=>v22[n]/t22>.01)])];
+  const maxp=Math.max(...nums.map(n=>Math.max(v22[n]&&mesmo(n)?v22[n]/t22*100:0,v26[n]?v26[n][0]/t26*100:0)),1);
   const rows=nums.map(n=>{const ok=mesmo(n),a=v22[n]&&ok?v22[n]/t22*100:NaN,b=v26[n]?v26[n][0]/t26*100:NaN;
-    const par=(v26[n]&&v26[n][2])||(D22.cand[n]&&D22.cand[n][1])||"";
-    return `<tr><td><b>${esc(par)}</b><small>Nº ${esc(n)}</small></td><td>${isNaN(a)?"–":fP(a)+"%"}<small>${ok?esc(D22.cand[n]?.[0]||"não concorreu"):"outro partido em 2022"}</small></td><td><b>${isNaN(b)?"–":fP(b)+"%"}</b><small>${esc(v26[n]?.[1]||"—")}</small></td><td>${isNaN(a)||isNaN(b)?"":dpp(b-a)}</td></tr>`}).join("");
-  $("compBr").innerHTML=`<table class="ctable"><thead><tr><th>Partido</th><th>2022</th><th>2026</th><th>Dif.</th></tr></thead><tbody>${rows}</tbody></table><p class="note">% dos votos válidos; diferença em pontos percentuais. A comparação usa o número de urna, que para presidente é o número do partido, e só vale quando o partido é o mesmo nos dois anos; os candidatos podem ser outros.</p>`;
+    const par=(v26[n]&&v26[n][2])||(D22.cand[n]&&D22.cand[n][1])||"",col=cor(par);
+    return `<div class="prow" style="--pc:${col}"><div class="pn"><b>${esc(par)}</b><small>${esc(v26[n]?.[1]||D22.cand[n]?.[0]||"")}</small></div>
+      <div class="pbars"><span class="pb old" style="width:${isNaN(a)?0:a/maxp*100}%"></span><span class="pb" style="width:${isNaN(b)?0:b/maxp*100}%"></span></div>
+      <div class="pv num"><b>${isNaN(b)?"–":fP(b)+"%"}</b><small>${isNaN(a)?(ok?"não concorreu":"outro partido"):"2022: "+fP(a)+"%"}</small></div>
+      <div class="pd num">${isNaN(a)||isNaN(b)?"":dpp(b-a)}</div></div>`}).join("");
+  $("compBr").innerHTML=`<div class="plegend"><span><i class="old"></i>2022</span><span><i></i>2026</span></div>${rows}
+    <p class="note">% dos votos válidos no 1º turno; diferença em pontos percentuais. Compara pelo número de urna (para presidente, o número do partido) e só quando o partido é o mesmo nos dois anos.</p>`;
+
+  /* ---- participação ---- */
   const d=D22.br.d1,part=[["Comparecimento",d[1]/d[0]*100,B.pc],["Abstenção",d[2]/d[0]*100,B.pa],["Brancos",d[3]/d[1]*100,B.pvb],["Nulos",d[4]/d[1]*100,B.ptvn]];
-  $("compPart").innerHTML=`<table class="ctable"><thead><tr><th></th><th>2022</th><th>2026</th><th>Dif.</th></tr></thead><tbody>${part.map(([l,a,b])=>`<tr><td><b>${l}</b></td><td>${fP(a)}%</td><td><b>${fP(b)}%</b></td><td>${dpp(b-a)}</td></tr>`).join("")}</tbody></table><p class="note">Comparecimento e abstenção sobre o eleitorado; brancos e nulos sobre quem votou. Em 2026, valem para as seções já apuradas.</p>`;
-  // projeção: cada UF termina com a mesma distribuição das seções já apuradas
-  const obs={},proj={},nomes={};let cob=0;
-  for(const k of [...Object.values(UF_IBGE).map(x=>x.toLowerCase()),"zz"]){const u=C.uf[k]?.r;if(!u||!(u.pst>0))continue;cob++;
+  $("compPart").innerHTML=`<table class="ctable"><thead><tr><th></th><th>2022</th><th>2026</th><th>Dif.</th></tr></thead><tbody>${part.map(([l,a,b])=>`<tr><td><b>${l}</b></td><td>${fP(a)}%</td><td><b>${fP(b)}%</b></td><td>${dpp(b-a)}</td></tr>`).join("")}</tbody></table><p class="note">Comparecimento e abstenção sobre o eleitorado; brancos e nulos sobre quem votou. Em 2026, nas seções já apuradas.</p>`;
+
+  /* ---- projeção e definição matemática ---- */
+  const obs={},proj={},nomes={};let R=0;
+  for(const k of [...Object.values(UF_IBGE).map(x=>x.toLowerCase()),"zz"]){const u=C.uf[k]?.r;if(!u||!(u.pst>0))continue;
+    const val=soma(vot(u.c));R+=val*(100/u.pst-1);
     for(const[n,x]of Object.entries(u.c)){obs[n]=(obs[n]||0)+x[0];proj[n]=(proj[n]||0)+x[0]*100/u.pst;nomes[n]=[x[1],x[2]]}}
-  const to=soma(obs),tp=soma(proj);const ord=Object.keys(proj).sort((a,b)=>proj[b]-proj[a]);
+  const to=soma(obs),tp=soma(proj),ord=Object.keys(proj).sort((a,b)=>proj[b]-proj[a]);
   if(!tp){$("compProj").innerHTML=`<p class="note">A projeção aparece quando houver votos apurados.</p>`;$("compScenBox").hidden=true}
   else{
-    const P=n=>proj[n]/tp*100,O=n=>obs[n]/to*100,L=ord[0];
-    const fim=B.pst>=99.95;
-    const ver=P(L)>50?`Mantido o ritmo de cada estado, <b>${esc(nomes[L][0])}</b> termina com cerca de <b>${fP(P(L))}%</b> dos válidos, acima de 50%: decisão no 1º turno.`
-      :`Mantido o ritmo de cada estado, ninguém passa de 50%. Projeção de 2º turno entre <b>${esc(nomes[L][0])}</b> e <b>${esc(nomes[ord[1]][0])}</b>.`;
-    $("compProj").innerHTML=`<table class="ctable"><thead><tr><th>Candidato</th><th>Agora</th><th>Projeção</th></tr></thead><tbody>${ord.slice(0,5).map(n=>`<tr><td><b>${esc(nomes[n][0])}</b><small>${esc(nomes[n][1])}</small></td><td>${fP(O(n))}%</td><td><b>${fP(P(n))}%</b></td></tr>`).join("")}</tbody></table>
-      <p class="note" style="color:var(--ink)">${fim?"A apuração está praticamente concluída; a projeção coincide com o resultado.":ver}</p>
-      <p class="note">Como é calculada: em cada estado, os votos que faltam seguem a mesma divisão das seções já apuradas, e os estados são somados pelo seu tamanho. Se as seções que faltam forem diferentes das apuradas (capital × interior, por exemplo), o resultado final muda.</p>`;
-    // cenários
-    const A=ord[0],Bn=ord[1],pA=P(A),pB=P(Bn),oth=Math.max(0,100-pA-pB);
-    $("compScenBox").hidden=!(pA<=50);
-    if(pA<=50){
-      let f22=null;const b1=D22.br["1"],b2=D22.br["2"],t1=soma(b1),t2=b2["13"]+b2["22"];
+    const L=ord[0],S2=ord[1],P=n=>proj[n]/tp*100,O=n=>obs[n]/to*100,nm=n=>esc(nomes[n][0]);
+    const gap=obs[L]-obs[S2],T=to+R;
+    const vira=R>0?(gap+R)/(2*R)*100:Infinity;        // % dos restantes que o 2º precisaria (com o 1º ficando com o resto)
+    const prec=R>0?(T/2-obs[L])/R*100:(obs[L]>T/2?-1:Infinity); // % dos restantes que o líder precisa p/ 50%
+    const defVira=gap>R, def1t=prec<=0, imp1t=prec>100;
+    const st=(ok,t)=>`<span class="pill ${ok?"ok":"open"}">${t}</span>`;
+    const linhas=[
+      [`Liderança de ${nm(L)}`, defVira?st(1,"definida"):st(0,"em aberto"),
+        defVira?`A vantagem de ${fN(gap)} votos é maior do que os cerca de ${fN(R)} votos válidos que faltam apurar.`
+               :`Para virar, ${nm(S2)} precisaria de ${fP(Math.min(vira,100))}% dos votos válidos que faltam (no ritmo atual, tem ${fP(P(S2))}%).`],
+      [`Decisão no 1º turno`, def1t?st(1,"definida"):imp1t?st(1,"2º turno garantido"):st(0,"em aberto"),
+        def1t?`${nm(L)} já passou da metade dos votos válidos possíveis.`
+          :imp1t?`Mesmo com todos os votos que faltam, ${nm(L)} não chega a 50% dos válidos.`
+          :`${nm(L)} precisaria de ${fP(prec)}% dos votos válidos que faltam para passar de 50% (no ritmo atual, tem ${fP(P(L))}%).`]
+    ];
+    $("compProj").innerHTML=`<div class="kpis"><div><small>Votos válidos apurados</small><b class="num">${fN(to)}</b></div><div><small>Faltam apurar (estimativa)</small><b class="num">${fN(R)}</b></div></div>
+      ${linhas.map(([t,p,x])=>`<div class="defrow"><div class="dt"><b>${t}</b>${p}</div><p>${x}</p></div>`).join("")}
+      <table class="ctable" style="margin-top:16px"><thead><tr><th>Candidato</th><th>Agora</th><th>Projeção</th></tr></thead><tbody>${ord.slice(0,5).map(n=>`<tr><td><b>${nm(n)}</b><small>${esc(nomes[n][1])}</small></td><td>${fP(O(n))}%</td><td><b>${fP(P(n))}%</b></td></tr>`).join("")}</tbody></table>
+      <p class="note">Como é calculada: em cada estado, as seções que faltam votam como as já apuradas, com o mesmo comparecimento; os estados são somados pelo tamanho. "Definida" é conta exata: nem com 100% dos votos restantes o resultado muda.</p>`;
+
+    /* ---- cenários de 2º turno: controle por candidato ---- */
+    const show=!def1t&&!(P(L)>50);
+    $("compScenBox").hidden=!show;
+    if(show){
+      const A=L,Bc=S2,pA=P(A),pB=P(Bc),outros=ord.slice(2).filter(n=>P(n)>=.3),resto=ord.slice(2).filter(n=>P(n)<.3);
+      const pR=resto.reduce((s,n)=>s+P(n),0),oth=outros.reduce((s,n)=>s+P(n),0)+pR;
+      const b1=D22.br["1"],b2=D22.br["2"],t1=soma(b1),t2=b2["13"]+b2["22"];
       const g13=b2["13"]/t2*100-b1["13"]/t1*100,g22=b2["22"]/t2*100-b1["22"]/t1*100;
-      if([A,Bn].includes("13")&&[A,Bn].includes("22"))f22=(A==="13"?g13:g22)/(g13+g22);
-      if(C.f==null)C.f=f22!=null?f22:.5;
-      const draw=()=>{const fa=C.f,a=pA+oth*fa,b=pB+oth*(1-fa),ca=cor(nomes[A][1]),cb=cor(nomes[Bn][1]);
-        $("scenOut").innerHTML=`<div class="sbar"><span style="width:${a}%;background:${ca}">${esc(nomes[A][0])} ${fP(a)}%</span><span style="width:${b}%;background:${cb};justify-content:flex-end">${fP(b)}% ${esc(nomes[Bn][0])}</span></div>`;
-        $("scenLbl").textContent=`${Math.round(fa*100)}% dos votos dos demais vão para ${nomes[A][0]} e ${Math.round((1-fa)*100)}% para ${nomes[Bn][0]}`};
-      $("compScen").innerHTML=`<div class="scen"><p class="note" style="margin:0">Os demais candidatos somam <b>${fP(oth)}%</b> na projeção. Arraste para simular para onde vão esses votos no 2º turno.</p>
-        <input type="range" id="scenF" min="0" max="100" value="${Math.round(C.f*100)}" aria-label="Divisão dos votos dos demais">
-        <p class="note num" id="scenLbl" style="margin:0"></p><div id="scenOut"></div>
-        <div class="btns">${f22!=null?`<button data-f="${f22}">Como em 2022</button>`:""}<button data-f=".5">Meio a meio</button><button data-f="${A==="13"||A==="22"?1:1}">Todos para ${esc(nomes[A][0])}</button><button data-f="0">Todos para ${esc(nomes[Bn][0])}</button></div>
-        ${f22!=null?`<p class="note">“Como em 2022”: entre os turnos de 2022, do crescimento somado de PT e PL sobre os válidos, ${fP((A==="13"?g13:g22)/(g13+g22)*100)}% foi para ${A==="13"?"o PT":"o PL"} e ${fP((A==="13"?g22:g13)/(g13+g22)*100)}% para ${A==="13"?"o PL":"o PT"}. É só uma referência histórica.</p>`:""}
-        <p class="note">Simplificação: considera que todos os votos válidos dos demais migram para os dois finalistas; abstenção e votos nulos no 2º turno também mudam o resultado.</p></div>`;
-      $("scenF").addEventListener("input",e=>{C.f=e.target.value/100;draw()});
-      $("compScen").querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{C.f=+b.dataset.f;$("scenF").value=Math.round(C.f*100);draw()}));
+      const f22=([A,Bc].includes("13")&&[A,Bc].includes("22"))?(A==="13"?g13:g22)/(g13+g22):null;
+      C.fs=C.fs||{};[...outros,"_r"].forEach(n=>{if(C.fs[n]==null)C.fs[n]=f22!=null?f22:.5});
+      const be=((pA-pB)+oth)/(2*oth)*100; // % dos demais que B precisa
+      const ca=cor(nomes[A][1]),cb=cor(nomes[Bc][1]);
+      const slider=(n,lab,pct)=>`<div class="srow"><div class="sl"><b>${lab}</b><small class="num">${fP(pct)}% dos válidos</small></div>
+        <input type="range" min="0" max="100" value="${Math.round(C.fs[n]*100)}" data-n="${n}" aria-label="Divisão dos votos de ${esc(lab)}">
+        <div class="sv num" id="sv_${n}"></div></div>`;
+      $("compScen").innerHTML=`<div class="scen">
+        <div id="scenOut"></div>
+        <p class="note" style="margin:0">Ponto de virada: ${nm(Bc)} vence se ficar com mais de <b>${fP(Math.max(0,Math.min(100,be)))}%</b> dos votos dos demais candidatos, somados.</p>
+        <div class="btns">${f22!=null?`<button data-p="${f22}">Como em 2022</button>`:""}<button data-p=".5">Meio a meio</button><button data-p="1">Todos para ${nm(A)}</button><button data-p="0">Todos para ${nm(Bc)}</button></div>
+        <div class="slist"><p class="note" style="margin:0">Arraste para definir quanto dos votos de cada um vai para <b style="color:${ca}">${nm(A)}</b>; o restante vai para <b style="color:${cb}">${nm(Bc)}</b>.</p>
+        ${outros.map(n=>slider(n,nomes[n][0],P(n))).join("")}${pR>0?slider("_r","Demais candidatos",pR):""}</div>
+        ${f22!=null?`<p class="note">“Como em 2022”: entre os turnos de 2022, do crescimento somado de PT e PL sobre os válidos, ${fP((A==="13"?g13:g22)/(g13+g22)*100)}% foi para ${A==="13"?"o PT":"o PL"}. É uma referência histórica, não uma previsão.</p>`:""}
+        <p class="note">Simplificação: considera que os votos válidos dos demais vão todos para um dos finalistas; abstenção e votos nulos no 2º turno também mudam o resultado.</p></div>`;
+      const draw=()=>{let a=pA,b=pB;
+        outros.forEach(n=>{a+=P(n)*C.fs[n];b+=P(n)*(1-C.fs[n]);$("sv_"+n).textContent=`${Math.round(C.fs[n]*100)}% · ${Math.round((1-C.fs[n])*100)}%`});
+        if(pR>0){a+=pR*C.fs._r;b+=pR*(1-C.fs._r);$("sv__r").textContent=`${Math.round(C.fs._r*100)}% · ${Math.round((1-C.fs._r)*100)}%`}
+        const t=a+b;a=a/t*100;b=b/t*100;const w=a>b?A:Bc;
+        $("scenOut").innerHTML=`<div class="sres"><div><small>${nm(A)}</small><b class="num" style="color:${ca}">${fP(a)}%</b></div><div style="text-align:right"><small>${nm(Bc)}</small><b class="num" style="color:${cb}">${fP(b)}%</b></div></div>
+          <div class="sbar"><span style="width:${a}%;background:${ca}"></span><span style="width:${b}%;background:${cb}"></span></div>
+          <p class="note" style="margin:8px 0 0;color:var(--ink)">Neste cenário, <b>${nm(w)}</b> vence por ${fP(Math.abs(a-b))} pontos.</p>`};
+      $("compScen").querySelectorAll("input[type=range]").forEach(r=>r.addEventListener("input",e=>{C.fs[e.target.dataset.n]=e.target.value/100;draw()}));
+      $("compScen").querySelectorAll("[data-p]").forEach(bt=>bt.addEventListener("click",()=>{const v=+bt.dataset.p;Object.keys(C.fs).forEach(k=>C.fs[k]=v);$("compScen").querySelectorAll("input[type=range]").forEach(r=>r.value=Math.round(v*100));draw()}));
       draw();
     }
   }
-  // por estado
-  const top2=Object.keys(v26).sort((a,b)=>v26[b][0]-v26[a][0]).slice(0,2);
-  const ufs=Object.values(UF_IBGE).sort();
-  $("compUf").innerHTML=ufs.map(U=>{const k=U.toLowerCase(),u=C.uf[k]?.r,o=D22.uf[U];if(!o)return"";
-    const t=soma(o["1"]),lid22=Object.keys(o["1"]).sort((a,b)=>o["1"][b]-o["1"][a])[0];
-    let tu=0,lid26=null;if(u){tu=soma(Object.fromEntries(Object.entries(u.c).map(([n,x])=>[n,x[0]])));lid26=Object.keys(u.c).sort((a,b)=>u.c[b][0]-u.c[a][0])[0]}
-    const lines=top2.map(n=>{const a=(o["1"][n]||0)/t*100,b=u&&tu?(u.c[n]?.[0]||0)/tu*100:NaN;const par=v26[n][2];
-      return `<span class="l" style="--pc:${cor(par)}"><i></i>${esc(par)} ${fP(a)}% → <b>${isNaN(b)?"–":fP(b)+"%"}</b> ${isNaN(b)?"":dpp(b-a)}</span>`}).join("");
-    const chip=!u||!tu?`<span class="chip2 same">sem dados</span>`:lid26===lid22?`<span class="chip2 same">manteve</span>`:`<span class="chip2">virou</span>`;
-    return `<div class="urow"><b>${U}</b><div>${lines}</div>${chip}<span></span><small class="note" style="margin:0;grid-column:2/4">${u?fP(u.pst)+"% apurado":""}</small></div>`}).join("")+
-    `<p class="note">2022 → 2026, % dos válidos no 1º turno, pelos dois mais votados de 2026. “Virou” quando o líder do estado em 2026 é de outro número que o líder de 2022.</p>`;
+
+  /* ---- por estado: margem entre os dois primeiros, 2022 → 2026 ---- */
+  const [x1,x2]=ordem;const c1=cor(v26[x1][2]),c2=cor(v26[x2][2]);
+  const lin=Object.values(UF_IBGE).map(U=>{const k=U.toLowerCase(),u=C.uf[k]?.r,o=D22.uf[U];if(!o)return null;
+    const t=soma(o["1"]);const m22=((o["1"][x1]||0)-(o["1"][x2]||0))/t*100;
+    let m26=NaN,pst=NaN;if(u){const tu=soma(vot(u.c));if(tu){m26=((u.c[x1]?.[0]||0)-(u.c[x2]?.[0]||0))/tu*100;pst=u.pst}}
+    return{U,m22,m26,pst}}).filter(Boolean).sort((a,b)=>(isNaN(b.m26)?-999:b.m26)-(isNaN(a.m26)?-999:a.m26));
+  const lim=Math.max(20,Math.ceil(Math.max(...lin.flatMap(l=>[Math.abs(l.m22),isNaN(l.m26)?0:Math.abs(l.m26)]))/10)*10);
+  const X=v=>50+v/lim*50;
+  const viraram=lin.filter(l=>!isNaN(l.m26)&&Math.sign(l.m26)!==Math.sign(l.m22)).map(l=>l.U);
+  const mov=lin.filter(l=>!isNaN(l.m26)).map(l=>l.m26-l.m22),med=mov.length?mov.reduce((a,b)=>a+b,0)/mov.length:0;
+  const p1=v26[x1][2],p2=v26[x2][2];
+  $("compUf").innerHTML=`<div class="kpis"><div><small>Estados que viraram</small><b class="num">${viraram.length}</b><small>${viraram.join(", ")||"nenhum"}</small></div>
+      <div><small>Movimento médio por estado</small><b class="num">${fP(Math.abs(med))} p.p.</b><small>a favor do ${esc(med>=0?p1:p2)}</small></div></div>
+    <div class="dax"><span style="color:${c2}">← ${esc(p2)} na frente</span><span style="color:${c1}">${esc(p1)} na frente →</span></div>
+    ${lin.map(l=>{const a=X(l.m22),b=isNaN(l.m26)?a:X(l.m26),lo=Math.min(a,b),hi=Math.max(a,b),cc=l.m26>=0?c1:c2,flip=viraram.includes(l.U);
+      return `<div class="drow2"><b>${l.U}</b><div class="dtrack"><i class="mid"></i><i class="seg" style="left:${lo}%;width:${hi-lo}%;background:${cc}"></i><i class="d22" style="left:${a}%"></i>${isNaN(l.m26)?"":`<i class="d26" style="left:${b}%;background:${cc}"></i>`}</div>
+        <span class="num">${isNaN(l.m26)?"–":(l.m26>=0?"+":"−")+fP(Math.abs(l.m26))}</span>${flip?`<span class="chip2">virou</span>`:`<span></span>`}</div>`}).join("")}
+    <div class="dax2 num"><span>−${lim}</span><span>0</span><span>+${lim}</span></div>
+    <p class="note">Cada linha é a diferença entre ${esc(p1)} e ${esc(p2)}, em pontos percentuais dos válidos no 1º turno: o círculo vazio é 2022, o cheio é 2026. Ordenado pela margem de 2026. “Virou” quando o partido na frente mudou.</p>`;
 }
 
 function setView(v){
