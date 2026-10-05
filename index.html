@@ -211,7 +211,7 @@ footer button{font:700 10.5px var(--f);border:1px solid var(--line);background:v
   </section>
   <section id="compView" class="stack" hidden>
     <section class="band"><div><small>PRESIDENTE · 1º TURNO</small><h2>2022 × 2026</h2></div><div class="vagas" id="compSt"></div></section>
-    <div class="box"><h3>Brasil: mesmo número, mesmo partido</h3><div id="compBr"></div></div>
+    <div class="box"><h3>Brasil: por partido</h3><div id="compBr"></div></div>
     <div class="box"><h3>Comparecimento e votos não válidos</h3><div id="compPart"></div></div>
     <div class="box"><h3>Projeção do 1º turno</h3><div id="compProj"></div></div>
     <div class="box" id="compScenBox"><h3>Cenários de 2º turno</h3><div id="compScen"></div></div>
@@ -566,10 +566,11 @@ function renderComp(){
   $("compSt").textContent=`${fP(B.pst)}% apurado · ${String(B.hg||"").slice(0,5)}`;
   const v26=B.c,t26=soma(Object.fromEntries(Object.entries(v26).map(([n,x])=>[n,x[0]]))),v22=D22.br["1"],t22=soma(v22);
   const nums=[...new Set([...Object.keys(v26).sort((a,b)=>v26[b][0]-v26[a][0]),...Object.keys(v22).filter(n=>v22[n]/t22>.01)])];
-  const rows=nums.map(n=>{const a=v22[n]?v22[n]/t22*100:NaN,b=v26[n]?v26[n][0]/t26*100:NaN;
+  const mesmo=n=>!v26[n]||!D22.cand[n]||semAcento(v26[n][2])===semAcento(D22.cand[n][1]);
+  const rows=nums.map(n=>{const ok=mesmo(n),a=v22[n]&&ok?v22[n]/t22*100:NaN,b=v26[n]?v26[n][0]/t26*100:NaN;
     const par=(v26[n]&&v26[n][2])||(D22.cand[n]&&D22.cand[n][1])||"";
-    return `<tr><td><b>${esc(par)}</b><small>Nº ${esc(n)}</small></td><td>${isNaN(a)?"–":fP(a)+"%"}<small>${esc(D22.cand[n]?.[0]||"—")}</small></td><td><b>${isNaN(b)?"–":fP(b)+"%"}</b><small>${esc(v26[n]?.[1]||"—")}</small></td><td>${isNaN(a)||isNaN(b)?"":dpp(b-a)}</td></tr>`}).join("");
-  $("compBr").innerHTML=`<table class="ctable"><thead><tr><th>Partido</th><th>2022</th><th>2026</th><th>Dif. p.p.</th></tr></thead><tbody>${rows}</tbody></table><p class="note">% dos votos válidos. Compara o mesmo número de urna (o número do candidato a presidente é o do partido); os candidatos podem ser outros.</p>`;
+    return `<tr><td><b>${esc(par)}</b><small>Nº ${esc(n)}</small></td><td>${isNaN(a)?"–":fP(a)+"%"}<small>${ok?esc(D22.cand[n]?.[0]||"não concorreu"):"outro partido em 2022"}</small></td><td><b>${isNaN(b)?"–":fP(b)+"%"}</b><small>${esc(v26[n]?.[1]||"—")}</small></td><td>${isNaN(a)||isNaN(b)?"":dpp(b-a)}</td></tr>`}).join("");
+  $("compBr").innerHTML=`<table class="ctable"><thead><tr><th>Partido</th><th>2022</th><th>2026</th><th>Dif. p.p.</th></tr></thead><tbody>${rows}</tbody></table><p class="note">% dos votos válidos. A comparação usa o número de urna, que para presidente é o número do partido, e só vale quando o partido é o mesmo nos dois anos; os candidatos podem ser outros.</p>`;
   const d=D22.br.d1,part=[["Comparecimento",d[1]/d[0]*100,B.pc],["Abstenção",d[2]/d[0]*100,B.pa],["Brancos",d[3]/d[1]*100,B.pvb],["Nulos",d[4]/d[1]*100,B.ptvn]];
   $("compPart").innerHTML=`<table class="ctable"><thead><tr><th></th><th>2022</th><th>2026</th><th>Dif. p.p.</th></tr></thead><tbody>${part.map(([l,a,b])=>`<tr><td><b>${l}</b></td><td>${fP(a)}%</td><td><b>${fP(b)}%</b></td><td>${dpp(b-a)}</td></tr>`).join("")}</tbody></table><p class="note">Comparecimento e abstenção sobre o eleitorado; brancos e nulos sobre quem votou. Em 2026, valem para as seções já apuradas.</p>`;
   // projeção: cada UF termina com a mesma distribuição das seções já apuradas
