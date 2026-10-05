@@ -126,6 +126,30 @@ footer button{font:700 10.5px var(--f);border:1px solid var(--line);background:v
 .drow .p{font-weight:900}
 .drow .v{color:var(--muted);min-width:58px;text-align:right}
 .legend b{font-weight:900}
+.ctable{width:100%;border-collapse:collapse;font-size:12px}
+.ctable th{font:800 9.5px var(--f);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:right;padding:4px 4px 6px;border-bottom:1px solid var(--line)}
+.ctable th:first-child,.ctable td:first-child{text-align:left}
+.ctable td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;vertical-align:top}
+.ctable tr:last-child td{border-bottom:0}
+.ctable td small{display:block;color:var(--muted);font-weight:600;font-size:10.5px}
+.ctable b{font-weight:800}
+.up{color:var(--up)} .down{color:var(--down)}
+.urow{display:grid;grid-template-columns:34px 1fr auto;gap:4px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:12px}
+.urow:last-child{border-bottom:0}
+.urow>b{font:900 14px var(--f)}
+.urow .l{display:flex;gap:6px;align-items:center;font-variant-numeric:tabular-nums}
+.urow .l i{width:8px;height:8px;border-radius:50%;background:var(--pc);flex:0 0 8px}
+.chip2{font:800 9px var(--f);letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:4px;background:#e88a1a;color:#fff}
+.chip2.same{background:var(--track);color:var(--muted)}
+.note{font-size:11.5px;color:var(--muted);line-height:1.5;margin:8px 0 0}
+.scen{display:grid;gap:10px}
+.scen input[type=range]{width:100%;accent-color:var(--navy)}
+.sbar{display:flex;height:26px;border-radius:6px;overflow:hidden;font:800 12px var(--f);color:#fff}
+.sbar span{display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns button{font:700 11.5px var(--f);border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:6px 10px;cursor:pointer}
+.y22{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);font-size:11.5px;color:var(--muted)}
+.y22 b{color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -135,7 +159,7 @@ footer button{font:700 10.5px var(--f);border:1px solid var(--line);background:v
   <div class="live"><i class="dot" id="dot"></i><div class="pst"><b class="num" id="pstTop">–</b><span>APURADO</span></div></div>
 </header>
 
-<nav class="tabs" id="views" aria-label="Visualização"><button class="tab" data-v="painel" aria-pressed="true">Painel</button><button class="tab" data-v="mapa" aria-pressed="false">Mapa</button></nav>
+<nav class="tabs" id="views" aria-label="Visualização"><button class="tab" data-v="painel" aria-pressed="true">Painel</button><button class="tab" data-v="mapa" aria-pressed="false">Mapa</button><button class="tab" data-v="comp" aria-pressed="false">Comparar</button></nav>
 <nav class="tabs" id="cargos" aria-label="Cargo"></nav>
 <nav class="tabs ufs" id="ufs" aria-label="Estado"></nav>
 
@@ -184,6 +208,15 @@ footer button{font:700 10.5px var(--f);border:1px solid var(--line);background:v
       <p class="hint num" id="mapStatus"></p>
     </div>
     <div class="box" id="mapDetail"></div>
+  </section>
+  <section id="compView" class="stack" hidden>
+    <section class="band"><div><small>PRESIDENTE · 1º TURNO</small><h2>2022 × 2026</h2></div><div class="vagas" id="compSt"></div></section>
+    <div class="box"><h3>Brasil: mesmo número, mesmo partido</h3><div id="compBr"></div></div>
+    <div class="box"><h3>Comparecimento e votos não válidos</h3><div id="compPart"></div></div>
+    <div class="box"><h3>Projeção do 1º turno</h3><div id="compProj"></div></div>
+    <div class="box" id="compScenBox"><h3>Cenários de 2º turno</h3><div id="compScen"></div></div>
+    <div class="box"><h3>Por estado</h3><div id="compUf"></div></div>
+    <p class="note">Fontes: 2026, arquivos oficiais de divulgação do TSE (resultados.tse.jus.br). 2022, Portal de Dados Abertos do TSE (votação por município e zona e detalhe da apuração, 1º e 2º turnos). A projeção e os cenários são contas sobre esses números, não pesquisas nem previsões oficiais.</p>
   </section>
 </main>
 
@@ -360,7 +393,7 @@ function msg(t,err){$("msg").textContent=t;$("msg").className="msg"+(err?" err":
 function startAuto(){clearInterval(S.timer);S.timer=setInterval(()=>{if(!document.hidden)fetchData()},30000)}
 function stopAuto(){clearInterval(S.timer);S.timer=null}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.timer)fetchData()});
-$("refresh").addEventListener("click",()=>{fetchData(true);startAuto();if(S.view==="mapa")loadMap(true)});
+$("refresh").addEventListener("click",()=>{fetchData(true);startAuto();if(S.view==="mapa")loadMap(true);if(S.view==="comp")loadComp(true)});
 $("simBtn").addEventListener("click",()=>{S.sim=!S.sim;M.cm=null;change()});
 
 /* ===== mapa ===== */
@@ -442,7 +475,7 @@ async function renderDetail(){
   if(!e.r||!e.r.top.length){el.innerHTML=`<div class="dhead"><b>${esc(title)}</b></div><p class="hint" style="margin:0">Ainda sem votos publicados aqui.</p>`;return}
   const r=e.r,max=Math.max(...r.top.map(c=>c.pct||0),1);
   el.innerHTML=`<div class="dhead"><b>${esc(title)}</b><span class="num">${fP(r.pst)}% das seções · ${esc(String(r.hg||"").slice(0,5))}</span></div>`+
-    r.top.slice(0,6).map((c,i)=>`<div class="drow" style="--pc:${cor(c.partido)}"><span class="n">${i+1}º</span><span class="nm">${esc(c.nome)} <small>${esc(c.partido)}</small><i class="dbar"><i style="width:${(c.pct||0)/max*100}%"></i></i></span><span class="p num">${fP(c.pct)}%</span><span class="v num">${fN(c.votos)}</span></div>`).join("");
+    r.top.slice(0,6).map((c,i)=>`<div class="drow" style="--pc:${cor(c.partido)}"><span class="n">${i+1}º</span><span class="nm">${esc(c.nome)} <small>${esc(c.partido)}</small><i class="dbar"><i style="width:${(c.pct||0)/max*100}%"></i></i></span><span class="p num">${fP(c.pct)}%</span><span class="v num">${fN(c.votos)}</span></div>`).join("")+linha22(k);
 }
 async function loadMap(force){
   const tok=++M.tok,box=$("mapSvg"),st=$("mapStatus");
@@ -500,12 +533,102 @@ $("citySearch").addEventListener("change",e=>{
   const c=list.find(m=>semAcento(m.nm)===v)||list.find(m=>semAcento(m.nm).startsWith(v));
   if(c){M.city=M.uf+c.cd;e.target.value=c.nm;markSel();renderDetail()}
 });
+/* ===== comparação 2022 × 2026 ===== */
+const C={uf:{},tok:0,f:null};
+let D22=null;
+async function d22(){if(D22)return D22;const r=await fetch("dados2022.json",{cache:"no-cache"});if(!r.ok)throw new Error("dados de 2022 indisponíveis");return D22=await r.json()}
+d22().catch(()=>{});
+const soma=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
+function linha22(k){
+  if(S.cargo!==1||!D22)return"";
+  let o=null,t2=null;
+  if(k.length===2){const u=D22.uf[k.toUpperCase()];if(u){o=u["1"];t2=u["2"]}}
+  else{const m=D22.mun[k];if(m){o={"13":m[0],"22":m[1]};o._t=m[2];t2=[m[3],m[4]]}}
+  if(!o)return"";const tot=o._t||soma(o);if(!tot)return"";
+  const p=n=>fP((o[n]||0)/tot*100)+"%",t2s=t2&&(t2[0]+t2[1])?` · 2º turno: Lula ${fP(t2[0]/(t2[0]+t2[1])*100)}% × Bolsonaro ${fP(t2[1]/(t2[0]+t2[1])*100)}%`:"";
+  return `<div class="y22"><b>Em 2022</b> (1º turno): Lula (PT) ${p("13")} · Bolsonaro (PL) ${p("22")}${t2s}</div>`;
+}
+function compacto(d){const c={};cands(d).forEach(x=>{c[x.n]=[x.votos||0,x.nome,x.partido]});
+  return{pst:num(deep(d,["pst"])),pc:num(deep(d,["pc"])),pa:num(deep(d,["pa"])),pvb:num(deep(d,["pvb"])),ptvn:num(deep(d,["ptvn"])),hg:deep(d,["hg"]),c}}
+const urlPres=uf=>{const e=env();return `${e.base}/${e.fed}/dados/${uf}/${uf}-c0001-e${pad(e.fed,6)}-u.json`};
+async function loadComp(force){
+  const tok=++C.tok;$("compSt").textContent="Carregando…";
+  try{await d22()}catch(e){$("compBr").innerHTML=`<p class="note">${esc(e.message)}</p>`;return}
+  const keys=["br",...Object.values(UF_IBGE).map(x=>x.toLowerCase()),"zz"];
+  const todo=keys.filter(k=>force||!C.uf[k]||Date.now()-C.uf[k].t>110000);let i=0;
+  const worker=async()=>{while(i<todo.length){const k=todo[i++];try{const d=await getJSON(urlPres(k));if(tok!==C.tok)return;C.uf[k]={t:Date.now(),r:compacto(d)}}catch(_){}}};
+  await Promise.all(Array.from({length:Math.min(6,todo.length)},worker));
+  if(tok!==C.tok)return;renderComp();
+}
+const dpp=d=>isNaN(d)?"":`<span class="${d>=0?"up":"down"}">${d>=0?"+":"−"}${fP(Math.abs(d))}</span>`;
+function renderComp(){
+  const B=C.uf.br?.r;if(!B||!D22){$("compBr").innerHTML=`<p class="note">Sem dados de 2026 ainda.</p>`;return}
+  $("compSt").textContent=`${fP(B.pst)}% apurado · ${String(B.hg||"").slice(0,5)}`;
+  const v26=B.c,t26=soma(Object.fromEntries(Object.entries(v26).map(([n,x])=>[n,x[0]]))),v22=D22.br["1"],t22=soma(v22);
+  const nums=[...new Set([...Object.keys(v26).sort((a,b)=>v26[b][0]-v26[a][0]),...Object.keys(v22).filter(n=>v22[n]/t22>.01)])];
+  const rows=nums.map(n=>{const a=v22[n]?v22[n]/t22*100:NaN,b=v26[n]?v26[n][0]/t26*100:NaN;
+    const par=(v26[n]&&v26[n][2])||(D22.cand[n]&&D22.cand[n][1])||"";
+    return `<tr><td><b>${esc(par)}</b><small>Nº ${esc(n)}</small></td><td>${isNaN(a)?"–":fP(a)+"%"}<small>${esc(D22.cand[n]?.[0]||"—")}</small></td><td><b>${isNaN(b)?"–":fP(b)+"%"}</b><small>${esc(v26[n]?.[1]||"—")}</small></td><td>${isNaN(a)||isNaN(b)?"":dpp(b-a)}</td></tr>`}).join("");
+  $("compBr").innerHTML=`<table class="ctable"><thead><tr><th>Partido</th><th>2022</th><th>2026</th><th>Dif. p.p.</th></tr></thead><tbody>${rows}</tbody></table><p class="note">% dos votos válidos. Compara o mesmo número de urna (o número do candidato a presidente é o do partido); os candidatos podem ser outros.</p>`;
+  const d=D22.br.d1,part=[["Comparecimento",d[1]/d[0]*100,B.pc],["Abstenção",d[2]/d[0]*100,B.pa],["Brancos",d[3]/d[1]*100,B.pvb],["Nulos",d[4]/d[1]*100,B.ptvn]];
+  $("compPart").innerHTML=`<table class="ctable"><thead><tr><th></th><th>2022</th><th>2026</th><th>Dif. p.p.</th></tr></thead><tbody>${part.map(([l,a,b])=>`<tr><td><b>${l}</b></td><td>${fP(a)}%</td><td><b>${fP(b)}%</b></td><td>${dpp(b-a)}</td></tr>`).join("")}</tbody></table><p class="note">Comparecimento e abstenção sobre o eleitorado; brancos e nulos sobre quem votou. Em 2026, valem para as seções já apuradas.</p>`;
+  // projeção: cada UF termina com a mesma distribuição das seções já apuradas
+  const obs={},proj={},nomes={};let cob=0;
+  for(const k of [...Object.values(UF_IBGE).map(x=>x.toLowerCase()),"zz"]){const u=C.uf[k]?.r;if(!u||!(u.pst>0))continue;cob++;
+    for(const[n,x]of Object.entries(u.c)){obs[n]=(obs[n]||0)+x[0];proj[n]=(proj[n]||0)+x[0]*100/u.pst;nomes[n]=[x[1],x[2]]}}
+  const to=soma(obs),tp=soma(proj);const ord=Object.keys(proj).sort((a,b)=>proj[b]-proj[a]);
+  if(!tp){$("compProj").innerHTML=`<p class="note">A projeção aparece quando houver votos apurados.</p>`;$("compScenBox").hidden=true}
+  else{
+    const P=n=>proj[n]/tp*100,O=n=>obs[n]/to*100,L=ord[0];
+    const fim=B.pst>=99.95;
+    const ver=P(L)>50?`Mantido o ritmo de cada estado, <b>${esc(nomes[L][0])}</b> termina com cerca de <b>${fP(P(L))}%</b> dos válidos, acima de 50%: decisão no 1º turno.`
+      :`Mantido o ritmo de cada estado, ninguém passa de 50%. Projeção de 2º turno entre <b>${esc(nomes[L][0])}</b> e <b>${esc(nomes[ord[1]][0])}</b>.`;
+    $("compProj").innerHTML=`<table class="ctable"><thead><tr><th>Candidato</th><th>Agora</th><th>Projeção</th></tr></thead><tbody>${ord.slice(0,5).map(n=>`<tr><td><b>${esc(nomes[n][0])}</b><small>${esc(nomes[n][1])}</small></td><td>${fP(O(n))}%</td><td><b>${fP(P(n))}%</b></td></tr>`).join("")}</tbody></table>
+      <p class="note" style="color:var(--ink)">${fim?"A apuração está praticamente concluída; a projeção coincide com o resultado.":ver}</p>
+      <p class="note">Como é calculada: em cada estado, os votos que faltam seguem a mesma divisão das seções já apuradas, e os estados são somados pelo seu tamanho. Se as seções que faltam forem diferentes das apuradas (capital × interior, por exemplo), o resultado final muda.</p>`;
+    // cenários
+    const A=ord[0],Bn=ord[1],pA=P(A),pB=P(Bn),oth=Math.max(0,100-pA-pB);
+    $("compScenBox").hidden=!(pA<=50);
+    if(pA<=50){
+      let f22=null;const b1=D22.br["1"],b2=D22.br["2"],t1=soma(b1),t2=b2["13"]+b2["22"];
+      const g13=b2["13"]/t2*100-b1["13"]/t1*100,g22=b2["22"]/t2*100-b1["22"]/t1*100;
+      if([A,Bn].includes("13")&&[A,Bn].includes("22"))f22=(A==="13"?g13:g22)/(g13+g22);
+      if(C.f==null)C.f=f22!=null?f22:.5;
+      const draw=()=>{const fa=C.f,a=pA+oth*fa,b=pB+oth*(1-fa),ca=cor(nomes[A][1]),cb=cor(nomes[Bn][1]);
+        $("scenOut").innerHTML=`<div class="sbar"><span style="width:${a}%;background:${ca}">${esc(nomes[A][0])} ${fP(a)}%</span><span style="width:${b}%;background:${cb};justify-content:flex-end">${fP(b)}% ${esc(nomes[Bn][0])}</span></div>`;
+        $("scenLbl").textContent=`${Math.round(fa*100)}% dos votos dos demais vão para ${nomes[A][0]} e ${Math.round((1-fa)*100)}% para ${nomes[Bn][0]}`};
+      $("compScen").innerHTML=`<div class="scen"><p class="note" style="margin:0">Os demais candidatos somam <b>${fP(oth)}%</b> na projeção. Arraste para simular para onde vão esses votos no 2º turno.</p>
+        <input type="range" id="scenF" min="0" max="100" value="${Math.round(C.f*100)}" aria-label="Divisão dos votos dos demais">
+        <p class="note num" id="scenLbl" style="margin:0"></p><div id="scenOut"></div>
+        <div class="btns">${f22!=null?`<button data-f="${f22}">Como em 2022</button>`:""}<button data-f=".5">Meio a meio</button><button data-f="${A==="13"||A==="22"?1:1}">Todos para ${esc(nomes[A][0])}</button><button data-f="0">Todos para ${esc(nomes[Bn][0])}</button></div>
+        ${f22!=null?`<p class="note">“Como em 2022”: entre os turnos de 2022, do crescimento somado de PT e PL sobre os válidos, ${fP((A==="13"?g13:g22)/(g13+g22)*100)}% foi para ${A==="13"?"o PT":"o PL"} e ${fP((A==="13"?g22:g13)/(g13+g22)*100)}% para ${A==="13"?"o PL":"o PT"}. É só uma referência histórica.</p>`:""}
+        <p class="note">Simplificação: considera que todos os votos válidos dos demais migram para os dois finalistas; abstenção e votos nulos no 2º turno também mudam o resultado.</p></div>`;
+      $("scenF").addEventListener("input",e=>{C.f=e.target.value/100;draw()});
+      $("compScen").querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{C.f=+b.dataset.f;$("scenF").value=Math.round(C.f*100);draw()}));
+      draw();
+    }
+  }
+  // por estado
+  const top2=Object.keys(v26).sort((a,b)=>v26[b][0]-v26[a][0]).slice(0,2);
+  const ufs=Object.values(UF_IBGE).sort();
+  $("compUf").innerHTML=ufs.map(U=>{const k=U.toLowerCase(),u=C.uf[k]?.r,o=D22.uf[U];if(!o)return"";
+    const t=soma(o["1"]),lid22=Object.keys(o["1"]).sort((a,b)=>o["1"][b]-o["1"][a])[0];
+    let tu=0,lid26=null;if(u){tu=soma(Object.fromEntries(Object.entries(u.c).map(([n,x])=>[n,x[0]])));lid26=Object.keys(u.c).sort((a,b)=>u.c[b][0]-u.c[a][0])[0]}
+    const lines=top2.map(n=>{const a=(o["1"][n]||0)/t*100,b=u&&tu?(u.c[n]?.[0]||0)/tu*100:NaN;const par=v26[n][2];
+      return `<span class="l" style="--pc:${cor(par)}"><i></i>${esc(par)} ${fP(a)}% → <b>${isNaN(b)?"–":fP(b)+"%"}</b> ${isNaN(b)?"":dpp(b-a)}</span>`}).join("");
+    const chip=!u||!tu?`<span class="chip2 same">sem dados</span>`:lid26===lid22?`<span class="chip2 same">manteve</span>`:`<span class="chip2">virou</span>`;
+    return `<div class="urow"><b>${U}</b><div>${lines}</div>${chip}<span></span><small class="note" style="margin:0;grid-column:2/4">${u?fP(u.pst)+"% apurado":""}</small></div>`}).join("")+
+    `<p class="note">2022 → 2026, % dos válidos no 1º turno, pelos dois mais votados de 2026. “Virou” quando o líder do estado em 2026 é de outro número que o líder de 2022.</p>`;
+}
+
 function setView(v){
   S.view=v;persist();
   $("painelView").hidden=v!=="painel";$("mapView").hidden=v!=="mapa";$("ufs").hidden=v==="mapa";
   document.querySelectorAll("[data-v]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===v)));
   clearInterval(M.timer);
   if(v==="mapa"){loadMap();M.timer=setInterval(()=>{if(!document.hidden&&S.view==="mapa")loadMap()},M.uf?300000:120000)}
+  $("compView").hidden=v!=="comp";$("cargos").hidden=v==="comp";if(v==="comp")$("ufs").hidden=true;
+  if(v==="comp"){loadComp();M.timer=setInterval(()=>{if(!document.hidden&&S.view==="comp")loadComp()},120000)}
 }
 $("views").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(b)setView(b.dataset.v)});
 
