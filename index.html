@@ -67,10 +67,10 @@ main{padding:var(--s3) var(--s3) var(--s5);display:grid;gap:var(--s3);max-width:
 .stack{display:grid;gap:var(--s3)}
 
 /* faixa do lugar: o único elemento em caixa alta, como no painel da TV */
-.band{background:var(--navy);color:#fff;border-radius:var(--r2);padding:var(--s3);display:flex;justify-content:space-between;align-items:flex-end;gap:var(--s3);position:relative;overflow:hidden}
+.band{background:var(--navy);color:#fff;border-radius:var(--r2);padding:var(--s3) var(--s3) 20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:var(--s2) var(--s3);position:relative;overflow:hidden}
 .band::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--accent)}
 .band small{display:block;font:600 var(--t12)/1.2 var(--f);color:#b9c4f5;margin-bottom:var(--s1)}
-.band h2{margin:0;font:900 var(--t32)/1 var(--f);text-transform:uppercase;letter-spacing:-.01em}
+.band h2{margin:0;font:900 var(--t32)/1 var(--f);text-transform:uppercase;letter-spacing:-.01em;white-space:nowrap}
 .band .vagas{font:600 var(--t12)/1.2 var(--f);color:#b9c4f5;text-align:right}
 
 /* cartões (60%) */
@@ -90,14 +90,14 @@ main{padding:var(--s3) var(--s3) var(--s5);display:grid;gap:var(--s3);max-width:
 
 /* candidatos */
 ol{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)}
-.c{background:var(--card);border:1px solid var(--line);border-radius:var(--r2);display:grid;grid-template-columns:40px 48px minmax(0,1fr) auto;align-items:center;gap:var(--s3);padding:var(--s3) var(--s3) var(--s3) 0;overflow:hidden;position:relative}
+.c{background:var(--card);border:1px solid var(--line);border-radius:var(--r2);display:grid;grid-template-columns:32px 40px minmax(0,1fr) auto;align-items:center;gap:12px;padding:var(--s3) var(--s3) var(--s3) 0;overflow:hidden;position:relative}
 .c::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--pc)}
 .rank{align-self:stretch;display:grid;place-items:center;font:800 var(--t14)/1 var(--f);color:var(--faint);margin:calc(-1 * var(--s3)) 0;padding-left:4px}
 .c.in .rank{background:var(--navy-soft);color:var(--navy)}
-.ph{width:48px;height:48px;border-radius:var(--r1);background:var(--track);display:grid;place-items:center;font:800 var(--t14) var(--f);color:var(--muted);overflow:hidden}
+.ph{width:40px;height:48px;border-radius:var(--r1);background:var(--track);display:grid;place-items:center;font:800 var(--t14) var(--f);color:var(--muted);overflow:hidden}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .who{min-width:0;display:grid;gap:var(--s1)}
-.who b{display:block;font:800 var(--t14)/1.2 var(--f);text-transform:uppercase;overflow-wrap:anywhere}
+.who b{display:block;font:800 13px/1.2 var(--f);text-transform:uppercase;overflow-wrap:break-word;hyphens:none}
 .meta{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1) var(--s2);font:600 var(--t12)/1.2 var(--f);color:var(--muted)}
 .meta span{white-space:nowrap}
 .pt{display:inline-flex;align-items:center;gap:var(--s1);font-weight:800;color:var(--ink)}
@@ -105,7 +105,7 @@ ol{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)}
 .mini{height:4px;background:var(--track);border-radius:4px;overflow:hidden}
 .mini i{display:block;height:100%;background:var(--pc)}
 .res{text-align:right;display:grid;gap:var(--s1);justify-items:end}
-.res b{font:900 var(--t24)/1 var(--f);letter-spacing:-.01em}
+.res b{font:900 22px/1 var(--f);letter-spacing:-.02em;white-space:nowrap}
 .res b small{font-size:var(--t12);font-weight:800}
 .res span{display:block;font:600 var(--t12)/1 var(--f);color:var(--muted)}
 .chip{justify-self:start;font:700 var(--t12)/1 var(--f);padding:var(--s1) var(--s2);border-radius:999px;background:var(--up);color:#fff}
@@ -166,12 +166,12 @@ svg text{font-family:var(--f)}
 
 /* comparar */
 .ctable{width:100%;border-collapse:collapse;font-size:var(--t12)}
-.ctable th{font:700 var(--t12)/1.2 var(--f);color:var(--muted);text-align:right;padding:0 var(--s1) var(--s2);border-bottom:1px solid var(--line)}
+.ctable th{white-space:nowrap;font:700 var(--t12)/1.2 var(--f);color:var(--muted);text-align:right;padding:0 var(--s1) var(--s2);border-bottom:1px solid var(--line)}
 .ctable th:first-child,.ctable td:first-child{text-align:left;padding-left:0}
 .ctable th:last-child,.ctable td:last-child{padding-right:0}
 .ctable td{padding:var(--s2) var(--s1);border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;vertical-align:top}
 .ctable tr:last-child td{border-bottom:0}
-.ctable td small{display:block;color:var(--muted);font-weight:600;font-size:11px;margin-top:2px}
+.ctable td small{display:block;color:var(--muted);font-weight:600;font-size:11px;margin-top:2px;overflow-wrap:break-word}
 .ctable b{font-weight:800}
 .urow{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:var(--s1) var(--s3);align-items:center;padding:var(--s2) 0;border-bottom:1px solid var(--line);font-size:var(--t12)}
 .urow:last-of-type{border-bottom:0}
@@ -613,9 +613,9 @@ function renderComp(){
   const rows=nums.map(n=>{const ok=mesmo(n),a=v22[n]&&ok?v22[n]/t22*100:NaN,b=v26[n]?v26[n][0]/t26*100:NaN;
     const par=(v26[n]&&v26[n][2])||(D22.cand[n]&&D22.cand[n][1])||"";
     return `<tr><td><b>${esc(par)}</b><small>Nº ${esc(n)}</small></td><td>${isNaN(a)?"–":fP(a)+"%"}<small>${ok?esc(D22.cand[n]?.[0]||"não concorreu"):"outro partido em 2022"}</small></td><td><b>${isNaN(b)?"–":fP(b)+"%"}</b><small>${esc(v26[n]?.[1]||"—")}</small></td><td>${isNaN(a)||isNaN(b)?"":dpp(b-a)}</td></tr>`}).join("");
-  $("compBr").innerHTML=`<table class="ctable"><thead><tr><th>Partido</th><th>2022</th><th>2026</th><th>Dif. p.p.</th></tr></thead><tbody>${rows}</tbody></table><p class="note">% dos votos válidos. A comparação usa o número de urna, que para presidente é o número do partido, e só vale quando o partido é o mesmo nos dois anos; os candidatos podem ser outros.</p>`;
+  $("compBr").innerHTML=`<table class="ctable"><thead><tr><th>Partido</th><th>2022</th><th>2026</th><th>Dif.</th></tr></thead><tbody>${rows}</tbody></table><p class="note">% dos votos válidos; diferença em pontos percentuais. A comparação usa o número de urna, que para presidente é o número do partido, e só vale quando o partido é o mesmo nos dois anos; os candidatos podem ser outros.</p>`;
   const d=D22.br.d1,part=[["Comparecimento",d[1]/d[0]*100,B.pc],["Abstenção",d[2]/d[0]*100,B.pa],["Brancos",d[3]/d[1]*100,B.pvb],["Nulos",d[4]/d[1]*100,B.ptvn]];
-  $("compPart").innerHTML=`<table class="ctable"><thead><tr><th></th><th>2022</th><th>2026</th><th>Dif. p.p.</th></tr></thead><tbody>${part.map(([l,a,b])=>`<tr><td><b>${l}</b></td><td>${fP(a)}%</td><td><b>${fP(b)}%</b></td><td>${dpp(b-a)}</td></tr>`).join("")}</tbody></table><p class="note">Comparecimento e abstenção sobre o eleitorado; brancos e nulos sobre quem votou. Em 2026, valem para as seções já apuradas.</p>`;
+  $("compPart").innerHTML=`<table class="ctable"><thead><tr><th></th><th>2022</th><th>2026</th><th>Dif.</th></tr></thead><tbody>${part.map(([l,a,b])=>`<tr><td><b>${l}</b></td><td>${fP(a)}%</td><td><b>${fP(b)}%</b></td><td>${dpp(b-a)}</td></tr>`).join("")}</tbody></table><p class="note">Comparecimento e abstenção sobre o eleitorado; brancos e nulos sobre quem votou. Em 2026, valem para as seções já apuradas.</p>`;
   // projeção: cada UF termina com a mesma distribuição das seções já apuradas
   const obs={},proj={},nomes={};let cob=0;
   for(const k of [...Object.values(UF_IBGE).map(x=>x.toLowerCase()),"zz"]){const u=C.uf[k]?.r;if(!u||!(u.pst>0))continue;cob++;
