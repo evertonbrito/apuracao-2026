@@ -276,8 +276,9 @@ footer>div:last-child{display:flex;gap:var(--s2)}
   #mapView>#senSum{grid-column:1/-1}
   #mapDetail{position:sticky;top:96px;max-height:calc(100vh - 120px);overflow:auto}
   .map svg{max-height:72vh}
-  #compView{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
-  #compView>.band,#compView>.note,#compView>.box:last-of-type{grid-column:1/-1}
+  #compView{display:block;columns:2;column-gap:var(--s4)}
+  #compView>*{break-inside:avoid;margin:0 0 var(--s4)}
+  #compView>.band,#compView>.note{column-span:all}
   footer{padding:var(--s4) var(--gut) var(--s5)}
 }
 </style>
