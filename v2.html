@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c0c0d">
+<title>Apuração 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap">
+<style>
+/* Painel de apuração, versão "sala de situação".
+   Hierarquia: 1) manchete e duelo à esquerda, 2) mapa no centro, 3) contexto à direita (regiões e últimas atualizações).
+   Fundo escuro neutro; cor só nos dados (partidos). Serifa só na marca e na manchete. Espaço em múltiplos de 4/8. */
+:root{
+  --bg:#0c0c0d; --card:#141416; --card2:#1a1a1d; --line:#26262a; --line2:#323237;
+  --ink:#f3f3f4; --ink2:#c9c9ce; --muted:#8e8e96; --faint:#5f5f67;
+  --live:#3ddc84; --warn:#f2b441;
+  --r:16px; --r2:10px;
+  --serif:"Newsreader",Georgia,serif; --f:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--f);-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+button,input,select{font-family:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.muted{color:var(--muted)}
+
+/* ---------- topo ---------- */
+header{position:sticky;top:0;z-index:20;background:rgba(12,12,13,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  display:flex;align-items:center;gap:16px;padding:12px 24px;border-bottom:1px solid var(--line)}
+.brand{font:400 26px/1 var(--serif);letter-spacing:-.01em;white-space:nowrap;margin-right:8px}
+.seg{display:flex;gap:2px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+.seg button{border:0;background:none;color:var(--ink2);font:500 14px/1 var(--f);padding:9px 16px;border-radius:999px;white-space:nowrap}
+.seg button[aria-pressed=true]{background:#2a2a2e;color:var(--ink)}
+.search{position:relative;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;background:var(--card);padding:0 8px 0 14px;height:42px;min-width:220px}
+.search input{border:0;background:none;outline:0;font:500 14px var(--f);width:100%;min-width:0}
+.search input::placeholder{color:var(--ink2)}
+.search kbd{font:500 11px/1 var(--f);color:var(--muted);border:1px solid var(--line2);border-radius:6px;padding:4px 6px}
+.status{margin-left:auto;display:flex;align-items:center;gap:8px;font:500 13px/1.2 var(--f);color:var(--ink2);white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--live);flex:none}
+.dot.warn{background:var(--warn)} .dot.off{background:#ef5350}
+.hbtn{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);border-radius:999px;height:42px;padding:0 14px;font:500 14px/1 var(--f);white-space:nowrap}
+.hbtn.icon{width:42px;padding:0;justify-content:center}
+.hbtn[aria-pressed=true]{background:#2a2a2e}
+.hbtn svg{width:16px;height:16px}
+
+/* ---------- grade ---------- */
+main{display:grid;grid-template-columns:400px minmax(0,1fr) 360px;gap:16px;padding:16px 24px 24px;align-items:start}
+.col{display:grid;gap:16px;align-content:start;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;min-width:0}
+.card h3{margin:0;font:500 15px/1.3 var(--f)}
+.kicker{display:flex;justify-content:space-between;align-items:center;gap:8px;font:400 13px/1.3 var(--f);color:var(--ink2)}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);background:var(--card2);border-radius:999px;padding:5px 10px;font:500 12px/1 var(--f);color:var(--ink);white-space:nowrap}
+.pill i{width:6px;height:6px;border-radius:50%;background:var(--ink)}
+.back{border:0;background:none;padding:0;color:var(--ink2);font:500 13px/1.3 var(--f);text-decoration:underline;text-underline-offset:3px}
+
+/* manchete e duelo */
+.head{margin:16px 0 20px;font:400 32px/1.12 var(--serif);letter-spacing:-.015em;text-wrap:balance}
+.head b{font-weight:400;color:var(--pc)}
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.side{display:grid;gap:4px;min-width:0}
+.side.r{justify-items:end;text-align:right}
+.who{display:flex;align-items:center;gap:12px;min-width:0}
+.side.r .who{flex-direction:row-reverse}
+.ph{width:64px;height:64px;border-radius:8px;background:var(--card2);overflow:hidden;flex:none;display:grid;place-items:center;font:600 15px var(--f);color:var(--muted)}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:50% 15%;display:block}
+.who b{display:block;font:500 16px/1.25 var(--f);overflow-wrap:break-word}
+.who small{display:block;font:500 13px/1.3 var(--f);color:var(--pc);margin-top:2px}
+.big{margin-top:16px;font:400 52px/1 var(--f);letter-spacing:-.045em}
+.big sup{font-size:18px;letter-spacing:0;color:var(--pc);vertical-align:28px;margin-left:2px}
+.side small.v{font:400 13px/1.3 var(--f);color:var(--ink2)}
+.tug{position:relative;display:flex;gap:4px;height:8px;margin:20px 0 16px}
+.tug span{border-radius:2px;background:var(--pc);min-width:2px}
+.tug span.o{background:#2a2a2e}
+.tug::after{content:"";position:absolute;left:50%;top:-6px;bottom:-6px;width:2px;margin-left:-1px;background:#fff;border-radius:1px}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font:400 13px/1.35 var(--f);color:var(--ink2)}
+.facts dd{margin:0;text-align:right;color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(3,auto);justify-content:space-between;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.stats small{display:block;font:400 12px/1.3 var(--f);color:var(--ink2)}
+.stats b{display:block;margin-top:4px;font:500 18px/1.2 var(--f);letter-spacing:-.01em}
+.list{display:grid;margin-top:8px}
+.row{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.row .ph{width:40px;height:40px;font-size:12px}
+.row b{display:block;font:500 14px/1.25 var(--f);overflow-wrap:break-word}
+.row small{display:block;font:400 12px/1.3 var(--f);color:var(--ink2)}
+.row small i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pc);margin-right:6px}
+.row .p{text-align:right;font:500 18px/1.1 var(--f);letter-spacing:-.02em}
+.row .p small{font-size:12px;letter-spacing:0;color:var(--muted)}
+.tag{display:inline-block;margin-top:4px;font:500 11px/1 var(--f);padding:4px 7px;border-radius:999px;background:#1f3b2b;color:#8ef0b5}
+.tag.t2{background:#3a3020;color:#f7cf7d}
+.seats{display:flex;gap:2px;height:10px;margin:16px 0 8px}
+.seats span{background:var(--pc);border-radius:2px}
+.seats span.o{background:#2a2a2e}
+.plegend{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1.2 var(--f);color:var(--ink2)}
+.plegend span{display:inline-flex;align-items:center;gap:6px}
+.plegend i{width:8px;height:8px;border-radius:2px;background:var(--pc)}
+.plegend b{color:var(--ink);font-weight:600}
+.note{margin:12px 0 0;font:400 12px/1.5 var(--f);color:var(--muted)}
+.msg{font:400 13px/1.5 var(--f);color:var(--ink2)}
+.msg.err{color:#ff8a80}
+
+/* gráfico */
+.chartLegend{display:flex;gap:16px;margin:8px 0 4px;font:400 13px/1.2 var(--f);color:var(--ink2)}
+.chartLegend span{display:inline-flex;align-items:center;gap:6px}
+.chartLegend i{width:14px;height:3px;border-radius:2px;background:var(--pc)}
+#chart svg{display:block;width:100%;height:auto}
+#chart text{font:400 11px var(--f);fill:var(--muted)}
+
+/* mapa */
+.mapwrap{position:relative;background:var(--bg);min-width:0}
+.mtools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chips button,.chips select{border:0;background:none;color:var(--ink2);font:500 14px/1 var(--f);padding:9px 12px;border-radius:999px}
+.chips button[aria-pressed=true]{background:#2a2a2e;color:var(--ink)}
+.chips select{background:var(--bg);appearance:none;-webkit-appearance:none;padding-right:22px;background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);background-position:calc(100% - 12px) 55%,calc(100% - 8px) 55%;background-size:4px 4px;background-repeat:no-repeat}
+.chips select.on{background-color:#2a2a2e;color:var(--ink)}
+.mleg{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font:500 13px/1.2 var(--f);color:var(--ink2);margin-left:auto}
+.mleg span{display:inline-flex;align-items:center;gap:6px}
+.mleg i{width:10px;height:10px;border-radius:2px;background:var(--pc)}
+.mleg b{color:var(--ink);font-weight:600}
+.ramp{display:inline-flex;gap:2px}
+.ramp i{width:14px;height:10px;border-radius:2px}
+#map{position:relative;margin-top:8px}
+#map svg{display:block;width:100%;height:auto;max-height:calc(100vh - 190px);margin:0 auto}
+#map path{stroke:#0c0c0d;stroke-width:.12;fill:#232327;transition:fill .4s}
+#map path.uf{stroke-width:.35}
+#map path.hov{stroke:#fff;stroke-width:.6}
+#map path.sel{stroke:#fff;stroke-width:1}
+#map .borders path{fill:none;stroke:#0c0c0d;stroke-width:.7;pointer-events:none}
+#map .lbl{pointer-events:none}
+#map .lbl text{font:600 7px var(--f);fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.55);stroke-width:1.6px}
+#map .lbl text.pc{font-weight:500;font-size:6.2px}
+#map .call rect{rx:2}
+#map .call text{font:600 6.6px var(--f);fill:#fff}
+#map .call line{stroke:#5f5f67;stroke-width:.35}
+.mstatus{display:flex;justify-content:space-between;gap:12px;margin-top:8px;font:400 12px/1.4 var(--f);color:var(--muted)}
+.tip{position:fixed;z-index:30;pointer-events:none;background:#1d1d20;border:1px solid var(--line2);border-radius:10px;padding:10px 12px;font:400 12px/1.4 var(--f);color:var(--ink2);min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.tip b{display:block;color:var(--ink);font:600 13px/1.3 var(--f);margin-bottom:4px}
+.tip div{display:flex;justify-content:space-between;gap:12px}
+.tip i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pc);margin-right:6px}
+
+/* regiões */
+.reg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.reg:first-of-type{border-top:0}
+.reg>b{font:500 15px/1.3 var(--f)}
+.reg .lead{display:flex;align-items:center;gap:8px;font:500 14px/1 var(--f)}
+.reg .lead .ph{width:28px;height:28px;border-radius:50%;font-size:10px}
+.reg .lead em{font-style:normal;font-size:12px;color:var(--pc)}
+.reg .lead small{font:400 12px/1 var(--f);color:var(--muted);min-width:34px;text-align:right}
+.reg>small{font:400 12px/1.2 var(--f);color:var(--muted)}
+.mini{position:relative;width:80px;height:3px;background:#2a2a2e;border-radius:2px;justify-self:end}
+.mini i{position:absolute;left:0;top:0;bottom:0;background:var(--pc);border-radius:2px}
+.mini.nt::after{display:none}
+.mini::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:#fff}
+
+/* atualizações */
+.feed{display:grid;margin-top:8px}
+.ev{display:grid;grid-template-columns:44px 36px minmax(0,1fr);gap:12px;align-items:start;padding:14px 0;border-top:1px solid var(--line)}
+.ev:first-child{border-top:0}
+.more{margin-top:8px;width:100%;border:1px solid var(--line);background:none;border-radius:999px;min-height:40px;font:500 13px/1 var(--f);color:var(--ink2)}
+.ev time{font:400 12px/1.4 var(--f);color:var(--muted);padding-top:2px}
+.ev .ph{width:36px;height:36px;border-radius:50%;font-size:11px}
+.ev .ring{width:22px;height:22px;margin:7px;border:2.5px solid var(--ink);border-radius:50%}
+.ev p{margin:0;font:400 14px/1.45 var(--f);color:var(--ink2)}
+.ev p b{color:var(--ink);font-weight:500}
+.ev p em{font-style:normal;color:var(--pc)}
+
+footer{padding:8px 24px 32px;font:400 12px/1.6 var(--f);color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+footer a{color:var(--ink2)}
+
+/* ---------- telas menores ---------- */
+@media (min-width:1180px){
+  .col.l,.col.r{position:sticky;top:83px;max-height:calc(100vh - 99px);overflow:auto;scrollbar-width:none}
+  .col.l::-webkit-scrollbar,.col.r::-webkit-scrollbar{display:none}
+}
+@media (max-width:1560px) and (min-width:1180px){#fsBtn{width:42px;padding:0;justify-content:center;font-size:0}#fsBtn svg{width:16px}.search{min-width:180px}}
+@media (max-width:1400px) and (min-width:1180px){main{grid-template-columns:360px minmax(0,1fr) 320px}.big{font-size:44px}.search{min-width:150px}.status .long{display:none}#extBtn{font-size:0;width:42px;padding:0;justify-content:center}}
+@media (max-width:1179px){
+  header{flex-wrap:wrap;padding:12px 16px;gap:12px}
+  .brand{font-size:22px}
+  .status{order:2}
+  .seg{order:3;width:100%;overflow-x:auto;scrollbar-width:none}
+  .seg::-webkit-scrollbar{display:none}
+  .seg button{flex:1 0 auto}
+  .search{order:4;flex:1;min-width:0}
+  .hbtn.opt{display:none}
+  #extBtn{order:5}
+  main{grid-template-columns:minmax(0,1fr);max-width:720px;margin:0 auto;padding:16px}
+  .col.l,.col.r{display:contents}
+  #lead{order:1}.col.c{order:2}#side{order:3}#chartCard{order:4}#feedCard{order:5}
+  #map svg{max-height:none}
+  .mleg{margin-left:0}
+  .head{font-size:28px}
+  .big{font-size:42px}
+}
+@media (max-width:420px){.big{font-size:36px}.ph{width:52px;height:52px}.who b{font-size:15px}.status .long{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Apuração 2026</div>
+  <nav class="seg" id="cargos" aria-label="Cargo"></nav>
+  <label class="search" aria-label="Buscar cidade">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" list="qlist" type="search" placeholder="Buscar cidade" autocomplete="off"><kbd>⌘K</kbd>
+    <datalist id="qlist"></datalist>
+  </label>
+  <div class="status"><i class="dot" id="dot"></i><span id="stTxt">Conectando ao TSE…</span></div>
+  <button class="hbtn" id="extBtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></svg>Exterior</button>
+  <button class="hbtn icon opt" id="shareBtn" aria-label="Compartilhar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3m0 0-4 4m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+  <button class="hbtn opt" id="fsBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Tela cheia</button>
+</header>
+
+<main>
+  <section class="col l">
+    <article class="card" id="lead"><p class="msg">Carregando dados do TSE…</p></article>
+    <article class="card" id="chartCard">
+      <h3>Ao longo da apuração</h3>
+      <div class="chartLegend" id="chartLeg"></div>
+      <div id="chart"></div>
+    </article>
+  </section>
+
+  <section class="col c mapwrap">
+    <div class="mtools">
+      <div class="chips" id="geoChips"><button data-g="mun">Municípios</button><button data-g="uf">Estados</button></div>
+      <div class="chips" id="modeChips"><button data-m="vant">Vantagem</button><button data-m="apur">Apurado</button><select id="candSel" aria-label="Colorir por candidato"><option value="">Candidato</option></select></div>
+      <div class="mleg" id="mleg"></div>
+    </div>
+    <div id="map"></div>
+    <div class="mstatus"><span id="mcap"></span><span id="mprog" class="num"></span></div>
+  </section>
+
+  <section class="col r">
+    <article class="card" id="side"></article>
+    <article class="card" id="feedCard">
+      <h3>Últimas atualizações</h3>
+      <div class="feed" id="feed"><p class="msg">As atualizações aparecem aqui conforme o TSE publica os arquivos.</p></div>
+    </article>
+  </section>
+</main>
+<div class="tip" id="tip" hidden></div>
+
+<footer>
+  <span id="fonte">Fonte: TSE, arquivos oficiais de divulgação (resultados.tse.jus.br). Malhas: IBGE. 2022: Portal de Dados Abertos do TSE.</span>
+  <span><a href="./">Versão anterior, com a aba Comparar 2022 × 2026</a></span>
+</footer>
+
+<script>
+/* ================= base ================= */
+const UFS=["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+const UF_NOME={BR:"Brasil",ZZ:"Exterior",AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"Ceará",DF:"Distrito Federal",ES:"Espírito Santo",GO:"Goiás",MA:"Maranhão",MT:"Mato Grosso",MS:"Mato Grosso do Sul",MG:"Minas Gerais",PA:"Pará",PB:"Paraíba",PR:"Paraná",PE:"Pernambuco",PI:"Piauí",RJ:"Rio de Janeiro",RN:"Rio Grande do Norte",RS:"Rio Grande do Sul",RO:"Rondônia",RR:"Roraima",SC:"Santa Catarina",SP:"São Paulo",SE:"Sergipe",TO:"Tocantins"};
+const UF_IBGE={11:"RO",12:"AC",13:"AM",14:"RR",15:"PA",16:"AP",17:"TO",21:"MA",22:"PI",23:"CE",24:"RN",25:"PB",26:"PE",27:"AL",28:"SE",29:"BA",31:"MG",32:"ES",33:"RJ",35:"SP",41:"PR",42:"SC",43:"RS",50:"MS",51:"MT",52:"GO",53:"DF"};
+const REG={Norte:["AC","AM","AP","PA","RO","RR","TO"],Nordeste:["AL","BA","CE","MA","PB","PE","PI","RN","SE"],"Centro-Oeste":["DF","GO","MS","MT"],Sudeste:["ES","MG","RJ","SP"],Sul:["PR","RS","SC"]};
+const CARGOS=[[1,"Presidente"],[3,"Governadores"],[5,"Senado"],[6,"Deputados"]];
+const NOME_CARGO={1:"Presidente",3:"Governador",5:"Senado",6:"Deputado federal"};
+const SEG_TURNO="25 de outubro";
+const qs=new URLSearchParams(location.search);
+const SIM=qs.get("sim")==="1";
+const ENV=SIM?{base:"https://resultados-sim.tse.jus.br/simulado/simulado2026/ele2026",fed:21270,est:21272}:{base:"https://resultados.tse.jus.br/oficial/ele2026",fed:6257,est:6259};
+const ROTAS=[{nome:"TSE direto",f:u=>u,ms:12000},{nome:"via allorigins",f:u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),ms:40000}];
+const $=id=>document.getElementById(id);
+const pad=(n,k)=>String(n).padStart(k,"0");
+const num=x=>{if(x==null||x==="")return NaN;if(typeof x==="number")return x;const s=String(x).trim();return s.includes(",")?parseFloat(s.replace(/\./g,"").replace(",",".")):parseFloat(s)};
+function deep(o,keys){const q=[o];while(q.length){const x=q.shift();if(x&&typeof x==="object"){if(!Array.isArray(x))for(const k of keys)if(x[k]!=null&&typeof x[k]!=="object")return x[k];for(const v of Object.values(x))if(v&&typeof v==="object")q.push(v)}}return null}
+function cands(d){
+  const out=[];
+  (function w(o,p){if(!o||typeof o!=="object")return;if(Array.isArray(o)){o.forEach(x=>w(x,p));return}
+    const pp=o.sg||(o.cand&&o.nm)||p;
+    if(Array.isArray(o.cand))o.cand.forEach(c=>out.push({n:String(c.n),sq:c.sqcand||c.sq||"",nome:c.nmu||c.nm||"—",partido:c.cc||pp||"",votos:num(c.vap),pct:num(c.pvap),st:(c.st||"").trim(),eleito:c.e==="s"}));
+    for(const[k,v]of Object.entries(o))if(k!=="cand"&&v&&typeof v==="object")w(v,pp)})(d,"");
+  const seen=new Set();
+  return out.filter(c=>{const k=c.n+"|"+c.nome;if(seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>(b.votos||0)-(a.votos||0));
+}
+const fN=n=>isNaN(n)?"–":Math.round(n).toLocaleString("pt-BR");
+const fP=(n,d=2)=>isNaN(n)?"–":n.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const fMi=n=>n>=1e6?fP(n/1e6,1)+" milhões":n>=1e3?fP(n/1e3,0)+" mil":fN(n);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const semAcento=t=>String(t).normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase().trim();
+const tit=t=>String(t).toLowerCase().replace(/(^|[\s'-])([a-zà-ú])/g,(m,a,b)=>a+b.toUpperCase()).replace(/ (Da|De|Do|Dos|Das|E) /g,m=>m.toLowerCase());
+const ini=n=>String(n).split(/\s+/).filter(Boolean).slice(0,2).map(s=>s[0]).join("");
+/* cores de partido calibradas para fundo escuro */
+const CORES={PL:"#4361ee",PT:"#e5383b",REPUBLICANOS:"#2ec4b6",PSOL:"#d6457a",PSD:"#e9b949",MDB:"#3fae6a",UNIAO:"#22a6c9",PP:"#7aa5ff",PSDB:"#9bc1ff",PSB:"#f08a3c",PDT:"#c4473f",NOVO:"#ff9f1c",REDE:"#29b39a",PODE:"#8f6ee0",PCDOB:"#b9312c",AVANTE:"#18a0a8",SOLIDARIEDADE:"#f28c28",PV:"#62b357",CIDADANIA:"#c2569a",PRD:"#5a63c9",DC:"#5d8de8",UP:"#c23b3b",PCO:"#a32a2a",PSTU:"#cf3e3e",MOBILIZA:"#9b59b6",AGIR:"#2a9d8f",PMB:"#a1887f",MISSAO:"#c77dff"};
+function cor(p){const k=semAcento(p).replace(/\s+/g,"");if(CORES[k])return CORES[k];let h=0;for(const ch of k)h=(h*31+ch.charCodeAt(0))%360;return `hsl(${h} 55% 58%)`}
+function fotoErr(img,t){if(!img.dataset.p){img.dataset.p=1;img.src="https://api.allorigins.win/raw?url="+encodeURIComponent(img.src)}else img.parentNode.textContent=t}
+const codeOf=cargo=>cargo===1?ENV.fed:ENV.est;
+const arq=(cargo,abr,uf)=>{const c=codeOf(cargo);return `${ENV.base}/${c}/dados/${uf}/${abr}-c${pad(cargo,4)}-e${pad(c,6)}-u.json`};
+const fotoUrl=(cargo,uf,sq)=>sq?`${ENV.base}/${codeOf(cargo)}/fotos/${uf}/${sq}.jpeg`:"";
+const ph=(c,cargo,uf)=>{const u=fotoUrl(cargo,uf,c.sq);return `<div class="ph">${u?`<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="fotoErr(this,'${esc(ini(c.nome))}')">`:esc(ini(c.nome))}</div>`};
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+async function getJSON(u,ms){
+  let last;
+  for(let i=0;i<ROTAS.length;i++){
+    try{const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ms||ROTAS[i].ms);
+      const r=await fetch(ROTAS[i].f(u),{cache:"no-cache",signal:ac.signal}).finally(()=>clearTimeout(to));
+      if(r.status===404){const e=new Error("ainda não publicado");e.status=404;throw e}
+      if(!r.ok){last=new Error("HTTP "+r.status);continue}
+      return await r.json();
+    }catch(e){if(e.status===404)throw e;last=e}
+  }
+  throw last||new Error("falha");
+}
+
+/* ================= estado ================= */
+const S=Object.assign({cargo:1,uf:null,city:null,geo:"mun",mode:"vant",cand:""},load("v2",{}),{city:null});
+if(!CARGOS.some(c=>c[0]===S.cargo))S.cargo=1;
+if(S.cargo===6&&!S.uf)S.uf="sp";
+const DB={};                 // chave "cargo:abr" -> {t, d, r}
+const key=(cargo,abr)=>`${cargo}:${abr}`;
+function resumo(d){const l=cands(d);return{
+  pst:num(deep(d,["pst"])),hg:deep(d,["hg"]),dg:deep(d,["dg"]),vt:l.reduce((s,c)=>s+(c.votos||0),0),
+  vv:num(deep(d,["vv","vvc"])),pc:num(deep(d,["pc"])),pvb:num(deep(d,["pvb"])),ptvn:num(deep(d,["ptvn","pvn"])),
+  st:num(deep(d,["st"])),ts:num(deep(d,["ts"])),nv:num(deep(d,["nv"])),top:l.slice(0,12)}}
+async function fetchOne(cargo,abr,uf,maxAge){
+  const k=key(cargo,abr),e=DB[k];if(e&&maxAge&&Date.now()-e.t<maxAge)return e;
+  try{const d=await getJSON(arq(cargo,abr,uf));const prev=DB[k];DB[k]={t:Date.now(),r:resumo(d)};onNew(cargo,abr,prev&&prev.r,DB[k].r);return DB[k]}
+  catch(err){if(!DB[k])DB[k]={t:Date.now(),r:null,err:err.status===404?"404":"erro"};else DB[k].t=Date.now();return DB[k]}
+}
+async function pool(items,n,fn){let i=0;await Promise.all(Array.from({length:Math.min(n,items.length)},async()=>{while(i<items.length){const it=items[i++];await fn(it)}}))}
+const persist=()=>save("v2",{cargo:S.cargo,uf:S.uf,geo:S.geo,mode:S.mode});
+const R=(cargo,abr)=>DB[key(cargo,abr)]?.r;
+
+/* ================= histórico e atualizações ================= */
+const HK="v2h:"+(SIM?"s":"o");
+const FK="v2f:"+(SIM?"s":"o");
+let FEED=load(FK,[]);
+function onNew(cargo,abr,old,nw){
+  if(!nw||!nw.top.length)return;
+  if(cargo===1&&abr==="br"){
+    const h=load(HK,[]);const last=h[h.length-1];
+    if(!last||last.pst!==nw.pst){h.push({pst:nw.pst,c:Object.fromEntries(nw.top.slice(0,4).map(c=>[c.n,c.pct]))});save(HK,h.slice(-400))}
+    if(old&&old.st!==nw.st&&nw.st>old.st)addFeed({id:"br"+nw.st,h:nw.hg,dg:nw.dg,k:"secoes",n:nw.st-old.st,top:nw.top.slice(0,2).map(c=>({nome:c.nome,p:c.partido,pct:c.pct}))});
+  }
+  if((cargo===3||cargo===5)&&abr.length===2){
+    const el=nw.top.filter(c=>c.eleito||/^eleit/i.test(c.st));
+    const t2=nw.top.filter(c=>/2º|turno/i.test(c.st));
+    if(el.length)addFeed({id:`e${cargo}${abr}${el.map(c=>c.n).join("")}`,h:nw.hg,dg:nw.dg,k:"eleito",cargo,uf:abr,c:el.map(c=>({nome:c.nome,p:c.partido,sq:c.sq}))});
+    else if(t2.length>=2)addFeed({id:`t${cargo}${abr}`,h:nw.hg,dg:nw.dg,k:"turno",cargo,uf:abr,c:t2.slice(0,2).map(c=>({nome:c.nome,p:c.partido,sq:c.sq}))});
+  }
+}
+function addFeed(ev){if(FEED.some(e=>e.id===ev.id))return;FEED.push(ev);FEED.sort((a,b)=>tsOf(b)-tsOf(a));FEED=FEED.slice(0,60);save(FK,FEED);feedDirty=true}
+const tsOf=e=>{const[d,m,y]=String(e.dg||"").split("/");return Date.parse(`${y}-${m}-${d}T${e.h||"00:00:00"}-03:00`)||0};
+let feedDirty=true;
+
+/* ================= topo ================= */
+function drawTabs(){
+  $("cargos").innerHTML=CARGOS.map(([c,n])=>`<button data-c="${c}" aria-pressed="${S.cargo===c}">${n}</button>`).join("");
+  $("extBtn").hidden=S.cargo!==1;$("extBtn").setAttribute("aria-pressed",S.uf==="zz");
+  document.querySelectorAll("#geoChips button").forEach(b=>b.setAttribute("aria-pressed",S.geo===b.dataset.g));
+  document.querySelectorAll("#modeChips button").forEach(b=>b.setAttribute("aria-pressed",!S.cand&&S.mode===b.dataset.m));
+  $("geoChips").hidden=S.cargo!==1;$("modeChips").hidden=S.cargo!==1;
+}
+$("cargos").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;S.cargo=+b.dataset.c;S.city=null;S.cand="";
+  if(S.cargo===6){if(!S.uf||S.uf==="zz")S.uf="sp"}else if(S.uf==="zz"&&S.cargo!==1)S.uf=null;
+  persist();go()});
+$("extBtn").addEventListener("click",()=>{S.uf=S.uf==="zz"?null:"zz";S.city=null;persist();go()});
+$("geoChips").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;S.geo=b.dataset.g;persist();drawTabs();drawMap()});
+$("modeChips").addEventListener("click",e=>{const b=e.target.closest("[data-m]");if(!b)return;S.mode=b.dataset.m;S.cand="";$("candSel").value="";persist();drawTabs();paintAll()});
+$("candSel").addEventListener("change",e=>{S.cand=e.target.value;drawTabs();paintAll()});
+$("shareBtn").addEventListener("click",async()=>{const u=location.href;try{if(navigator.share)await navigator.share({title:"Apuração 2026",url:u});else{await navigator.clipboard.writeText(u);$("shareBtn").title="Link copiado"}}catch(_){}});
+$("fsBtn").addEventListener("click",()=>{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen?.()});
+document.addEventListener("keydown",e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();$("q").focus()}if(e.key==="Escape"&&(S.city||S.uf)){if(S.city)S.city=null;else S.uf=null;persist();go()}});
+
+function drawStatus(){
+  const r=R(1,"br");const st=$("stTxt"),dot=$("dot");
+  if(!r){return}
+  const hg=String(r.hg||"").slice(0,5).replace(":","h");
+  const idade=(Date.now()-tsOf({dg:r.dg,h:r.hg}))/60000;
+  dot.className="dot"+(r.pst<100&&idade>10?" warn":"");
+  st.innerHTML=`<span class="long">Atualizado às </span>${hg} · ${fP(r.pst,r.pst>=100?0:2)}% das seções`+(r.pst<100&&idade>10?` <span class="muted">· TSE parado há ${idade<60?Math.floor(idade)+" min":Math.floor(idade/60)+"h"+pad(Math.floor(idade%60),2)}</span>`:"");
+}
+
+/* ================= coluna da esquerda ================= */
+const lugar=()=>S.city?(MUN.name[S.city]||"")+" · "+S.uf.toUpperCase():S.uf?UF_NOME[S.uf.toUpperCase()]:"Brasil";
+const nomeCurto=c=>{const t=tit(c.nome);return t};
+function statusPill(r,cargo){
+  const t2=r.top.filter(c=>/2º|turno/i.test(c.st)),el=r.top.filter(c=>c.eleito||/^eleit/i.test(c.st));
+  if(el.length)return `<span class="pill"><i style="background:var(--live)"></i>Eleito${el.length>1?"s":""} · ${esc(String(r.hg||"").slice(0,5).replace(":","h"))}</span>`;
+  if(t2.length>=2)return `<span class="pill"><i></i>2º turno</span>`;
+  if(r.pst>=100)return `<span class="pill"><i></i>Apuração encerrada</span>`;
+  return `<span class="pill"><i style="background:var(--live)"></i>${fP(r.pst)}% apurado</span>`;
+}
+function manchete(r,cargo){
+  const A=r.top[0],B=r.top[1];const nm=c=>`<b style="--pc:${cor(c.partido)}">${esc(nomeCurto(c))}</b>`;
+  const t2=r.top.filter(c=>/2º|turno/i.test(c.st)),el=r.top.filter(c=>c.eleito||/^eleit/i.test(c.st));
+  if(cargo===5){
+    if(el.length>=2)return `${nm(el[0])} e ${nm(el[1])} são eleitos para o Senado`;
+    if(el.length===1)return `${nm(el[0])} está eleito; ${r.top[2]?`${nm(r.top[1])} e ${nm(r.top[2])} disputam a 2ª vaga`:""}`;
+    return `${nm(A)} e ${nm(B)} lideram para as duas vagas`;
+  }
+  if(el.length)return `${nm(el[0])} está eleito${cargo===1?" presidente":cargo===3?" governador":""}`;
+  if(t2.length>=2)return `${nm(t2[0])} e ${nm(t2[1])} vão ao 2º turno`;
+  if(!B)return `${nm(A)}`;
+  const dif=A.pct-B.pct;
+  if(r.pst>=100)return `${nm(A)} termina em 1º, ${fP(dif,1)} pontos à frente de ${nm(B)}`;
+  return dif<3?`${nm(A)} e ${nm(B)} disputam voto a voto`:`${nm(A)} lidera, à frente de ${nm(B)}`;
+}
+function duelo(r,cargo,uf,a=0,b=1){
+  const A=r.top[a],B=r.top[b];if(!A||!B)return "";
+  const sA=A.pct||0,sB=B.pct||0,rest=Math.max(0,100-sA-sB);
+  // esquerda = quem está à esquerda no campo político não é dado oficial; usamos a ordem: 2º à esquerda, 1º à direita, como no placar
+  const L=B,Rr=A;
+  const side=(c,cls)=>`<div class="side ${cls}" style="--pc:${cor(c.partido)}"><div class="who">${ph(c,cargo,uf)}<div><b>${esc(nomeCurto(c))}</b><small>${esc(c.partido)} ${esc(c.n)}</small></div></div>
+    <div class="big num">${fP(c.pct)}<sup>%</sup></div><small class="v num">${fN(c.votos)} votos</small></div>`;
+  return `<div class="duel">${side(L,"l")}${side(Rr,"r")}</div>
+    <div class="tug" aria-hidden="true"><span style="--pc:${cor(L.partido)};flex:${L.pct||0}"></span><span class="o" style="flex:${rest}"></span><span style="--pc:${cor(Rr.partido)};flex:${Rr.pct||0}"></span></div>`;
+}
+function stats(r){return `<div class="stats num"><div><small>Votos válidos</small><b>${fN(r.vv)}</b></div><div><small>Comparecimento</small><b>${fP(r.pc,1)}%</b></div><div><small>Brancos e nulos</small><b>${fP((r.pvb||0)+(r.ptvn||0),1)}%</b></div></div>`}
+function lista(r,cargo,uf,from,n,vagas){
+  return `<div class="list">${r.top.slice(from,from+n).map((c,i)=>{const el=c.eleito||/^eleit/i.test(c.st),t2=/2º|turno/i.test(c.st);
+    return `<div class="row" style="--pc:${cor(c.partido)}">${ph(c,cargo,uf)}<div><b>${esc(nomeCurto(c))}</b><small><i></i>${esc(c.partido)} · ${esc(c.n)}</small>${el?`<span class="tag">${esc(c.st||"Eleito")}</span>`:t2?`<span class="tag t2">2º turno</span>`:""}</div><div class="p num">${fP(c.pct)}%<small><br>${fN(c.votos)}</small></div></div>`}).join("")}</div>`;
+}
+function renderLead(){
+  const el=$("lead");const cargo=S.cargo;
+  // resumo nacional para governador e senado
+  if((cargo===3||cargo===5)&&!S.uf){el.innerHTML=resumoNacional(cargo);return}
+  if(cargo===6&&!S.uf)S.uf="sp";
+  const abr=S.city||S.uf||"br",uf=S.uf||"br";const r=R(cargo,abr);
+  const back=S.city?`<button class="back" data-back="uf">${esc(UF_NOME[S.uf.toUpperCase()])}</button>`:S.uf&&cargo!==6?`<button class="back" data-back="br">${cargo===1?"Brasil":"Todos os estados"}</button>`:"";
+  const kick=`<div class="kicker"><span>${NOME_CARGO[cargo]} · ${esc(lugar())}${back?" · "+back:""}</span>${r&&r.top.length?statusPill(r,cargo):""}</div>`;
+  if(!r){const e=DB[key(cargo,abr)];el.innerHTML=kick+`<p class="msg${e&&e.err?" err":""}" style="margin-top:16px">${e&&e.err==="404"?"O TSE ainda não publicou este arquivo.":e&&e.err?"Não consegui ler este arquivo do TSE agora. Tentando de novo em instantes.":"Carregando…"}</p>`;return}
+  if(!r.top.length){el.innerHTML=kick+`<p class="msg" style="margin-top:16px">Ainda sem votos publicados aqui.</p>`;return}
+  if(cargo===6){
+    el.innerHTML=kick+`<h2 class="head">Mais votados para deputado federal em ${esc(UF_NOME[S.uf.toUpperCase()])}</h2>${lista(r,6,uf,0,15)}${stats(r)}<p class="note">Escolha outro estado no mapa. A distribuição das cadeiras depende do quociente eleitoral; o TSE marca os eleitos quando a conta fecha.</p>`;return}
+  const a=cargo===5?1:0,b=cargo===5?2:1;
+  const A=r.top[a],B=r.top[b];
+  const dif=A&&B?A.votos-B.votos:NaN,difp=A&&B?A.pct-B.pct:NaN;
+  const t2=r.top.filter(c=>/2º|turno/i.test(c.st)).length>=2;
+  el.innerHTML=kick+`<h2 class="head">${manchete(r,cargo)}</h2>`+
+    (cargo===5?lista(r,5,uf,0,2)+`<p class="note" style="margin:16px 0 0">Disputa pela 2ª vaga</p>`:"")+
+    duelo(r,cargo,uf,a,b)+
+    `<dl class="facts num"><dt>Diferença</dt><dd>${fP(difp)} pontos · ${fMi(dif)} de votos</dd>${t2&&!S.city?`<dt>2º turno</dt><dd>Em ${SEG_TURNO}</dd>`:""}${r.pst<100?`<dt>Seções apuradas</dt><dd>${fP(r.pst)}% (${fN(r.st)} de ${fN(r.ts)})</dd>`:""}</dl>`+
+    (r.top.length>2&&cargo!==5?`<details style="margin-top:12px"><summary class="muted" style="cursor:pointer;font-size:13px">Todos os candidatos (${r.top.length}${r.top.length>=12?"+":""})</summary>${lista(r,cargo,uf,0,12)}</details>`:"")+
+    stats(r);
+}
+function resumoNacional(cargo){
+  const ufs=UFS.map(u=>u.toLowerCase());const vag=cargo===5?2:1;const tot=27*vag;
+  let lead=[],el=0,t2=0,n=0,pst=0;
+  for(const u of ufs){const r=R(cargo,u);if(!r||!r.top.length||!(r.top[0].votos>0))continue;n++;pst+=r.pst||0;
+    for(let i=0;i<vag;i++)if(r.top[i])lead.push(r.top[i].partido);
+    el+=r.top.filter(c=>c.eleito||/^eleit/i.test(c.st)).length;if(r.top.filter(c=>/2º|turno/i.test(c.st)).length>=2)t2++}
+  const kick=`<div class="kicker"><span>${cargo===5?"Senado":"Governadores"} · Brasil</span>${n?`<span class="pill"><i style="background:var(--live)"></i>${fP(pst/n,1)}% apurado</span>`:""}</div>`;
+  if(!n)return kick+`<p class="msg" style="margin-top:16px">Carregando os ${27} estados…</p>`;
+  const cnt={};lead.forEach(p=>cnt[p]=(cnt[p]||0)+1);const ord=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
+  const p0=ord[0];
+  const head=cargo===5?`<b style="--pc:${cor(p0[0])}">${esc(p0[0])}</b> lidera em ${p0[1]} das ${tot} vagas do Senado`:`<b style="--pc:${cor(p0[0])}">${esc(p0[0])}</b> lidera em ${p0[1]} dos 27 estados`;
+  return kick+`<h2 class="head">${head}</h2>
+    <div class="seats">${ord.map(([p,c])=>`<span style="--pc:${cor(p)};flex:${c}" title="${esc(p)}: ${c}"></span>`).join("")}${lead.length<tot?`<span class="o" style="flex:${tot-lead.length}"></span>`:""}</div>
+    <div class="plegend">${ord.map(([p,c])=>`<span style="--pc:${cor(p)}"><i></i>${esc(p)} <b class="num">${c}</b></span>`).join("")}</div>
+    <dl class="facts num" style="margin-top:20px"><dt>${cargo===5?"Senadores eleitos":"Governadores eleitos"}</dt><dd>${el} de ${tot}</dd>${cargo===3?`<dt>Estados com 2º turno</dt><dd>${t2}${t2?` · em ${SEG_TURNO}`:""}</dd>`:""}<dt>Estados com dados</dt><dd>${n} de 27</dd></dl>
+    <p class="note">${cargo===5?"Cada estado elege dois senadores em 2026. A contagem considera os dois mais votados em cada estado.":"A cor no mapa mostra o partido de quem lidera em cada estado."} Toque num estado para ver a disputa.</p>`;
+}
+$("lead").addEventListener("click",e=>{const b=e.target.closest("[data-back]");if(!b)return;if(b.dataset.back==="br"){S.uf=null;S.city=null}else S.city=null;persist();go()});
+
+/* ================= gráfico ================= */
+function renderChart(){
+  const card=$("chartCard");const r=R(1,"br");
+  if(S.cargo!==1||!r||r.top.length<2){card.hidden=S.cargo!==1;$("chart").innerHTML=`<p class="msg">Carregando…</p>`;$("chartLeg").innerHTML="";return}
+  card.hidden=false;
+  const two=[r.top[1],r.top[0]];const h=load(HK,[]);
+  $("chartLeg").innerHTML=two.map(c=>`<span style="--pc:${cor(c.partido)}"><i></i>${esc(nomeCurto(c))}</span>`).join("");
+  if(h.length<2){$("chart").innerHTML=`<p class="note">A curva é montada a partir das atualizações que este aparelho acompanhou. Deixe a página aberta durante a apuração para ver a evolução.</p>`;return}
+  const W=360,H=230,L=36,Rm=10,T=8,B=24;
+  const pts=two.map(c=>h.map(s=>[s.pst,s.c[c.n]]).filter(p=>p[1]!=null&&!isNaN(p[1])));
+  const ys=pts.flat().map(p=>p[1]);let y0=Math.floor(Math.min(...ys)/2)*2-2,y1=Math.ceil(Math.max(...ys)/2)*2+2;
+  const X=x=>L+(x/100)*(W-L-Rm),Y=y=>T+(1-(y-y0)/(y1-y0))*(H-T-B);
+  let g=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução dos dois primeiros ao longo da apuração">`;
+  const step=(y1-y0)>12?4:2;
+  for(let y=y0;y<=y1;y+=step)g+=`<line x1="${L}" x2="${W-Rm}" y1="${Y(y)}" y2="${Y(y)}" stroke="#222226"/><text x="${L-6}" y="${Y(y)+4}" text-anchor="end">${y}%</text>`;
+  g+=`<text x="${X(0)}" y="${H-4}">0% das seções</text><text x="${X(50)}" y="${H-4}" text-anchor="middle">50%</text><text x="${X(100)}" y="${H-4}" text-anchor="end">100%</text>`;
+  two.forEach((c,i)=>{const p=pts[i];if(!p.length)return;const col=cor(c.partido);
+    g+=`<polyline fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${p.map(q=>X(q[0]).toFixed(1)+","+Y(q[1]).toFixed(1)).join(" ")}"/>`;
+    const e=p[p.length-1];g+=`<circle cx="${X(e[0])}" cy="${Y(e[1])}" r="3.5" fill="${col}" stroke="#141416" stroke-width="2"/>`});
+  $("chart").innerHTML=g+"</svg>";
+}
+
+/* ================= coluna da direita ================= */
+let D22=null;
+fetch("dados2022.json").then(r=>r.ok?r.json():null).then(d=>{D22=d;renderSide()}).catch(()=>{});
+function renderSide(){
+  const el=$("side");
+  if(S.cargo===1){
+    const rows=[];
+    for(const[nome,ufs]of Object.entries(REG)){
+      const tot={},info={};let vt=0,pstS=0,ts=0,ok=0;
+      for(const u of ufs){const r=R(1,u.toLowerCase());if(!r)continue;ok++;r.top.forEach(c=>{tot[c.n]=(tot[c.n]||0)+(c.votos||0);info[c.n]=c});vt+=r.vt;pstS+=(r.pst||0)*(r.ts||1);ts+=(r.ts||1)}
+      if(!ok||!vt){rows.push({nome,vazio:true});continue}
+      const best=Object.entries(tot).sort((a,b)=>b[1]-a[1])[0];const c=info[best[0]],pct=best[1]/vt*100;
+      let d=NaN;if(D22){let v=0,t=0;for(const u of ufs){const x=D22.uf?.[u]?.["1"];if(!x)continue;for(const[nr,vv]of Object.entries(x)){t+=vv;if(D22.cand?.[nr]?.[1]&&semAcento(D22.cand[nr][1])===semAcento(c.partido))v+=vv}}if(t&&v)d=pct-v/t*100}
+      rows.push({nome,c,pct,pst:pstS/ts,d});
+    }
+    const z=R(1,"zz");if(z&&z.top.length)rows.push({nome:"Exterior",c:z.top[0],pct:z.top[0].pct,pst:z.pst,d:NaN,zz:true});
+    el.innerHTML=`<div class="kicker" style="margin-bottom:8px"><h3>Por região</h3><span>Quem lidera para presidente</span></div>`+rows.map(o=>o.vazio?`<div class="reg"><b>${o.nome}</b><span class="muted">carregando…</span><small></small></div>`:
+      `<div class="reg" style="--pc:${cor(o.c.partido)}"><b>${o.zz?"🌐 ":""}${o.nome}</b><span class="lead">${ph(o.c,1,o.zz?"zz":"br")}<em>${esc(o.c.partido)}</em><span class="num">${fP(o.pct,1)}%</span><small class="num">${isNaN(o.d)?"":(o.d>=0?"+":"−")+fP(Math.abs(o.d),1)}</small></span><small class="num">${fP(o.pst,0)}%</small><span class="mini"><i style="width:${Math.min(100,o.pct)}%"></i></span></div>`).join("")+
+      `<p class="note">Percentual de votos válidos do líder na região. Ao lado, a variação em pontos do mesmo partido em relação ao 1º turno de 2022.</p>`;
+    return;
+  }
+  // governador, senado, deputados: placar por partido
+  const vag=S.cargo===5?2:1;const cnt={},el2={};let n=0;
+  for(const u of UFS){const r=R(S.cargo,u.toLowerCase());if(!r||!r.top.length)continue;n++;
+    if(S.cargo===6){r.top.filter(c=>c.eleito||/^eleit/i.test(c.st)).forEach(c=>cnt[c.partido]=(cnt[c.partido]||0)+1);continue}
+    for(let i=0;i<vag;i++){const c=r.top[i];if(!c)continue;cnt[c.partido]=(cnt[c.partido]||0)+1;if(c.eleito||/^eleit/i.test(c.st))el2[c.partido]=(el2[c.partido]||0)+1}}
+  const ord=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);const max=Math.max(1,...ord.map(o=>o[1]));
+  el.innerHTML=`<div class="kicker" style="margin-bottom:8px"><h3>Por partido</h3><span>${S.cargo===6?"eleitos marcados pelo TSE":S.cargo===5?"vagas lideradas":"estados liderados"}</span></div>`+
+    (ord.length?ord.slice(0,12).map(([p,c])=>`<div class="reg" style="--pc:${cor(p)}"><b>${esc(p)}</b><span class="lead num">${c}${S.cargo!==6&&el2[p]?` <small>${el2[p]} eleito${el2[p]>1?"s":""}</small>`:""}</span><small></small><span class="mini nt" style="width:120px"><i style="width:${c/max*100}%"></i></span></div>`).join(""):`<p class="msg">${S.cargo===6?"O TSE marca os deputados eleitos depois do cálculo do quociente. Os estados aparecem conforme você navega.":"Carregando…"}</p>`)+
+    `<p class="note">${n} de 27 estados com dados.</p>`;
+}
+function renderFeed(){
+  if(!feedDirty)return;feedDirty=false;
+  const f=$("feed");if(!FEED.length)return;
+  f.innerHTML=FEED.slice(0,FEEDN).map(e=>{const t=`<time class="num">${esc(String(e.h||"").slice(0,5).replace(":","h"))}</time>`;
+    if(e.k==="secoes"){const[a,b]=e.top;return `<div class="ev">${t}<div class="ring"></div><p><b class="num">+${fN(e.n)}</b> seç${e.n>1?"ões":"ão"}<br>${e.top.map(c=>`<b>${esc(tit(c.nome))}</b> <em style="--pc:${cor(c.p)}" class="num">${fP(c.pct,1)}%</em>`).join("<br>")}</p></div>`}
+    const c=e.c[0],nomes=e.c.map(c=>`<b>${esc(tit(c.nome))}</b>`).join(" e ");
+    const fp=fotoUrl(e.cargo,e.uf,c.sq);
+    const foto=`<div class="ph">${fp?`<img src="${esc(fp)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.textContent='${esc(ini(c.nome))}'">`:esc(ini(c.nome))}</div>`;
+    const lugar=esc(UF_NOME[e.uf.toUpperCase()]);
+    const txt=e.k==="eleito"?(e.cargo===5?`${nomes} ${e.c.length>1?"são eleitos":"é eleito"} para o Senado.`:`${nomes} é eleito governador.`):`${nomes} vão ao 2º turno para governador.`;
+    return `<div class="ev">${t}${foto}<p>${lugar}: ${txt}</p></div>`}).join("")+(FEED.length>FEEDN?`<button class="more" id="feedMore">Ver mais atualizações</button>`:"");
+}
+let FEEDN=12;
+$("feed").addEventListener("click",e=>{if(e.target.id==="feedMore"){FEEDN+=20;feedDirty=true;renderFeed()}});
+
+/* ================= mapa ================= */
+const MUN={cm:null,name:{},list:[],byIbge:{},geoBR:null,geoUF:null,geoSt:{}};
+async function cmLoad(){
+  if(MUN.cm)return MUN.cm;
+  const d=await getJSON(`${ENV.base}/${ENV.fed}/config/mun-e${pad(ENV.fed,6)}-cm.json`,30000);
+  const by={};
+  for(const u of d.abr){by[u.cd]=(u.mu||[]).map(m=>({cd:m.cd,nm:m.nm,cdi:m.cdi}));for(const m of (u.mu||[])){const k=u.cd+m.cd;MUN.byIbge[m.cdi]=k;MUN.name[k]=tit(m.nm);MUN.list.push([k,u.cd])}}
+  $("qlist").innerHTML=MUN.list.filter(([,u])=>u!=="zz").map(([k,u])=>`<option value="${esc(MUN.name[k])} - ${u.toUpperCase()}"></option>`).join("");
+  return MUN.cm=by;
+}
+const IBGE="https://servicodados.ibge.gov.br/api/v3/malhas/";
+async function geoUF(){return MUN.geoUF||(MUN.geoUF=await getJSON(IBGE+"paises/BR?formato=application/vnd.geo%2Bjson&intrarregiao=UF&qualidade=minima",30000))}
+async function geoBR(){return MUN.geoBR||(MUN.geoBR=await getJSON(IBGE+"paises/BR?formato=application/vnd.geo%2Bjson&intrarregiao=municipio&qualidade=minima",60000))}
+async function geoEst(uf){return MUN.geoSt[uf]||(MUN.geoSt[uf]=await getJSON(IBGE+`estados/${uf.toUpperCase()}?formato=application/vnd.geo%2Bjson&intrarregiao=municipio&qualidade=minima`,30000))}
+let PROJ=null;
+function projFor(g){
+  const rings=f=>!f.geometry?[]:f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
+  let x0=180,x1=-180,y0=90,y1=-90;
+  g.features.forEach(f=>rings(f).forEach(p=>p.forEach(r=>r.forEach(([x,y])=>{if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}))));
+  const k=Math.cos((y0+y1)/2*Math.PI/180),W=360,sx=W/((x1-x0)*k),H=Math.round((y1-y0)*sx);
+  return {W,H,P:([x,y])=>((x-x0)*k*sx).toFixed(1)+","+((y1-y)*sx).toFixed(1),rings};
+}
+const pathD=(f,pr)=>pr.rings(f).map(p=>p.map(r=>"M"+r.map(pr.P).join("L")+"Z").join("")).join("");
+let mapTok=0;
+async function drawMap(){
+  const tok=++mapTok,box=$("map");
+  const nat=!S.uf||S.uf==="zz";
+  try{
+    if(nat){
+      const gu=await geoUF();if(tok!==mapTok)return;
+      const useMun=S.cargo===1&&S.geo==="mun";
+      let gm=null;
+      if(useMun){try{[gm]=await Promise.all([geoBR(),cmLoad()])}catch(e){gm=null;$("mcap").textContent="Não consegui carregar os municípios; mostrando estados."}}
+      if(tok!==mapTok)return;
+      const pr=projFor(gu);PROJ=pr;
+      let body="";
+      if(gm){body=gm.features.map(f=>{const k=MUN.byIbge[f.properties.codarea];return k?`<path data-k="${k}" data-uf="${k.slice(0,2)}" d="${pathD(f,pr)}"/>`:""}).join("")+
+        `<g class="borders">${gu.features.map(f=>`<path d="${pathD(f,pr)}"/>`).join("")}</g>`}
+      else body=gu.features.map(f=>{const u=UF_IBGE[f.properties.codarea];return u?`<path class="uf" data-k="${u.toLowerCase()}" d="${pathD(f,pr)}"/>`:""}).join("");
+      box.innerHTML=`<svg viewBox="-4 -4 ${pr.W+96} ${pr.H+8}" role="img" aria-label="Mapa do Brasil">${body}<g class="lbl"></g><g class="call"></g></svg>`;
+      MAPKEYS=gm?[...box.querySelectorAll("path[data-k]")].map(p=>p.dataset.k):UFS.map(u=>u.toLowerCase());
+      MAPLEVEL=gm?"mun":"uf";
+      paintAll();labels(gu,pr);
+      if(gm)loadMuns(tok);
+    }else{
+      const [g]=await Promise.all([geoEst(S.uf),cmLoad()]);if(tok!==mapTok)return;
+      const pr=projFor(g);
+      box.innerHTML=`<svg viewBox="-4 -4 ${pr.W+8} ${pr.H+8}" role="img" aria-label="Mapa de ${esc(UF_NOME[S.uf.toUpperCase()])}">${g.features.map(f=>{const k=MUN.byIbge[f.properties.codarea];return k?`<path data-k="${k}" d="${pathD(f,pr)}"/>`:""}).join("")}</svg>`;
+      MAPKEYS=[...box.querySelectorAll("path[data-k]")].map(p=>p.dataset.k);MAPLEVEL="mun";
+      markSel();paintAll();
+      if(S.cargo!==6)loadMuns(tok,S.uf);else $("mcap").textContent="Para deputados o mapa não é colorido. Toque numa cidade para ver os mais votados nela.";
+    }
+  }catch(e){if(tok===mapTok){box.innerHTML="";$("mcap").textContent=`Não consegui carregar o mapa (${e.message}).`}}
+}
+let MAPKEYS=[],MAPLEVEL="uf";
+async function loadMuns(tok,uf){
+  const keys=MAPKEYS.filter(k=>!uf||k.startsWith(uf));
+  const todo=keys.filter(k=>{const e=DB[key(S.cargo,k)];return !e||Date.now()-e.t>(S.uf?120000:600000)});
+  let done=keys.length-todo.length;const tot=keys.length;const cargo=S.cargo;
+  const upd=()=>{$("mprog").textContent=done<tot?`Carregando ${fN(done)} de ${fN(tot)} municípios`:"";};upd();
+  let last=0;
+  await pool(todo,uf?8:16,async k=>{if(tok!==mapTok||cargo!==S.cargo)return;await fetchOne(cargo,k,k.slice(0,2));done++;
+    const p=$("map").querySelector(`path[data-k="${k}"]`);if(p)paint(p);
+    if(Date.now()-last>700){last=Date.now();upd();legend()}});
+  if(tok===mapTok){upd();legend()}
+}
+function shade(p,margin){return margin<10?.42:margin<25?.62:margin<45?.82:1}
+function paint(p){
+  const k=p.dataset.k,r=R(S.cargo,k);
+  if(!r||!r.top.length||!(r.top[0].votos>0)){
+    // enquanto a cidade não chega, mostra a cor do estado bem clara
+    const su=R(S.cargo,k.slice(0,2));const L=su&&!S.cand&&S.mode!=="apur"&&su.top[0];
+    if(k.length>2&&L&&L.votos>0){p.style.fill=cor(L.partido);p.style.fillOpacity=.18}else{p.style.fill="";p.style.fillOpacity=""}
+    return}
+  if(S.cargo===1&&S.cand){const c=r.top.find(x=>x.n===S.cand);const v=c?c.pct:0;p.style.fill=cor(CAND[S.cand]?.partido||"");p.style.fillOpacity=Math.max(.08,Math.min(1,v/70));return}
+  if(S.cargo===1&&S.mode==="apur"){p.style.fill="#e9e9ee";p.style.fillOpacity=Math.max(.06,(r.pst||0)/100);return}
+  const A=r.top[0],B=r.top[1];
+  if(S.cargo===5&&!S.uf&&B&&semAcento(A.partido)!==semAcento(B.partido)){p.style.fill=`url(#${listra(cor(A.partido),cor(B.partido))})`;p.style.fillOpacity=1;return}
+  p.style.fill=cor(A.partido);p.style.fillOpacity=S.cargo===1?shade(p,(A.pct||0)-(B?.pct||0)):1;
+}
+function listra(a,b){const id="st"+(a+b).replace(/[^a-z0-9]/gi,"");const svg=$("map").querySelector("svg");if(!svg)return id;let defs=svg.querySelector("defs");if(!defs){defs=document.createElementNS("http://www.w3.org/2000/svg","defs");svg.prepend(defs)}
+  if(!defs.querySelector("#"+id))defs.insertAdjacentHTML("beforeend",`<pattern id="${id}" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="2.5" height="5" fill="${a}"/><rect x="2.5" width="2.5" height="5" fill="${b}"/></pattern>`);return id}
+let CAND={};
+function paintAll(){$("map").querySelectorAll("path[data-k]").forEach(paint);legend();labelsUpd()}
+function legend(){
+  const el=$("mleg");
+  if(S.cargo===1){
+    const r=R(1,"br");if(r){CAND={};r.top.forEach(c=>CAND[c.n]=c);const sel=$("candSel");const cur=S.cand;
+      if(sel.options.length!==Math.min(r.top.length,8)+1)sel.innerHTML=`<option value="">Candidato</option>`+r.top.slice(0,8).map(c=>`<option value="${esc(c.n)}">${esc(nomeCurto(c))}</option>`).join("");sel.value=cur;sel.classList.toggle("on",!!cur)}
+    if(S.mode==="apur"&&!S.cand){el.innerHTML=`<span class="ramp">${[.15,.4,.7,1].map(o=>`<i style="background:#e9e9ee;opacity:${o}"></i>`).join("")}</span><span>0 · 50 · 100% das seções apuradas</span>`;return}
+    if(S.cand){const c=CAND[S.cand];el.innerHTML=c?`<span class="ramp">${[.15,.4,.7,1].map(o=>`<i style="background:${cor(c.partido)};opacity:${o}"></i>`).join("")}</span><span>% de ${esc(nomeCurto(c))}: até 10 · 30 · 50 · 70+</span>`:"";return}
+  }
+  const cnt={};let n=0;
+  const dois=S.cargo===5&&MAPLEVEL==="uf";
+  MAPKEYS.forEach(k=>{if(S.uf&&S.uf!=="zz"&&!k.startsWith(S.uf))return;const r=R(S.cargo,k);if(!r)return;(dois?r.top.slice(0,2):r.top.slice(0,1)).forEach(L=>{if(L&&L.votos>0){n++;cnt[L.partido]=(cnt[L.partido]||0)+1}})});
+  const ord=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,S.cargo===1?2:6);
+  const unid=MAPLEVEL==="mun"?"municípios":dois?"vagas":"estados";
+  el.innerHTML=ord.map(([p,c])=>`<span style="--pc:${cor(p)}"><i></i>${esc(p)} <b class="num">${fN(c)}</b></span>`).join("")+(ord.length?`<span>${unid}</span>`:"")+
+    (S.cargo===1?`<span class="ramp">${[.42,.62,.82,1].map(o=>`<i style="background:#8e8ea0;opacity:${o}"></i>`).join("")}</span><span>vantagem até 10 · 25 · 45 · mais pontos</span>`:"");
+  $("mcap").textContent=S.uf&&S.uf!=="zz"?"Passe o dedo ou o mouse sobre uma cidade; toque para ver os votos dela.":S.cargo===1?"Toque num estado para ver as cidades.":S.cargo===5?"Listras: as duas vagas lideradas por partidos diferentes. Toque num estado para ver a disputa.":"Toque num estado para ver a disputa.";
+}
+/* rótulos: sigla + % do líder; estados pequenos do litoral ganham etiquetas fora do mapa */
+const FORA=["rn","pb","pe","al","se","es","rj"];
+const AJUSTE={go:[-4,4],pa:[0,4],mg:[-3,0],df:[3,-2],sc:[2,0]};
+let LBL=null;
+function labels(gu,pr){
+  const svg=$("map").querySelector("svg");if(!svg)return;LBL=[];
+  const cent={};
+  svg.querySelectorAll(".lbl").forEach(g=>g.innerHTML="");
+  // centro aproximado: média dos vértices do maior anel
+  gu.features.forEach(f=>{const u=UF_IBGE[f.properties.codarea];if(!u)return;let best=null,ba=0;
+    pr.rings(f).forEach(p=>{const r=p[0];if(!r)return;let a=0;for(let i=0;i<r.length-1;i++)a+=r[i][0]*r[i+1][1]-r[i+1][0]*r[i][1];if(Math.abs(a)>ba){ba=Math.abs(a);best=r}});
+    if(!best)return;let x=0,y=0;best.forEach(pt=>{const[a,b]=pr.P(pt).split(",").map(Number);x+=a;y+=b});cent[u.toLowerCase()]=[x/best.length,y/best.length]});
+  LBL=Object.entries(cent).map(([u,[x,y]])=>{const a=AJUSTE[u]||[0,0];return{u,x:x+a[0],y:y+a[1]}});
+  labelsUpd();
+}
+function labelsUpd(){
+  const svg=$("map").querySelector("svg");if(!svg||!LBL||S.uf&&S.uf!=="zz"){return}
+  const g=svg.querySelector(".lbl"),c=svg.querySelector(".call");if(!g)return;
+  const W=PROJ.W;let h="",hc="";
+  const out=LBL.filter(o=>FORA.includes(o.u)).sort((a,b)=>a.y-b.y);
+  LBL.forEach(o=>{if(FORA.includes(o.u))return;const r=R(S.cargo,o.u),L=r?.top[0];
+    const pc=L&&L.votos>0?`${fP(L.pct,0)}%`:"";
+    h+=`<text x="${o.x}" y="${o.y}" text-anchor="middle">${o.u.toUpperCase()}</text>${pc?`<text class="pc" x="${o.x}" y="${o.y+7.5}" text-anchor="middle">${pc}</text>`:""}`});
+  // etiquetas externas
+  let yy=Math.min(...out.map(o=>o.y))-10;
+  out.forEach(o=>{const r=R(S.cargo,o.u),L=r?.top[0];const ok=L&&L.votos>0;
+    const ty=Math.max(yy,o.y-5);yy=ty+14;const tx=W+30;
+    const txt=ok?`${fP(L.pct,0)}%`:"";
+    hc+=`<line x1="${o.x}" y1="${o.y}" x2="${tx}" y2="${ty+5}"/><rect x="${tx}" y="${ty}" width="58" height="11" rx="2" fill="${ok?cor(L.partido):"#2a2a2e"}"/><text x="${tx+5}" y="${ty+8}">${o.u.toUpperCase()}</text><text x="${tx+53}" y="${ty+8}" text-anchor="end">${txt}</text>`});
+  if(S.cargo===1){const z=R(1,"zz"),L=z?.top[0];if(L){const ty=yy+18,tx=W+30;hc+=`<rect x="${tx}" y="${ty}" width="58" height="11" rx="2" fill="${cor(L.partido)}" opacity=".9"/><text x="${tx+5}" y="${ty+8}">Exterior</text><text x="${tx+53}" y="${ty+8}" text-anchor="end">${fP(L.pct,0)}%</text>`}}
+  g.innerHTML=h;c.innerHTML=hc;
+}
+function markSel(){const svg=$("map");svg.querySelectorAll("path.sel").forEach(p=>p.classList.remove("sel"));if(S.city){const p=svg.querySelector(`path[data-k="${S.city}"]`);if(p){p.classList.add("sel");p.parentNode.appendChild(p)}}}
+// interação
+const tip=$("tip");
+function tipFor(k){
+  const r=R(S.cargo,k);const nome=k.length===2?UF_NOME[k.toUpperCase()]:`${MUN.name[k]||k} · ${k.slice(0,2).toUpperCase()}`;
+  if(!r||!r.top.length)return `<b>${esc(nome)}</b>${S.cargo===6?"Toque para ver":"Carregando…"}`;
+  return `<b>${esc(nome)}</b>`+r.top.slice(0,3).map(c=>`<div style="--pc:${cor(c.partido)}"><span><i></i>${esc(nomeCurto(c))}</span><span class="num">${fP(c.pct,1)}%</span></div>`).join("")+`<div class="muted"><span>Apurado</span><span class="num">${fP(r.pst,0)}%</span></div>`;
+}
+let hov=null;
+$("map").addEventListener("pointermove",e=>{
+  if(e.pointerType==="touch")return;
+  const p=e.target.closest("path[data-k]");
+  if(hov&&hov!==p)hov.classList.remove("hov");
+  if(!p){tip.hidden=true;hov=null;return}
+  hov=p;p.classList.add("hov");
+  let k=p.dataset.k;if(MAPLEVEL==="mun"&&(!S.uf||S.uf==="zz")&&e.altKey)k=p.dataset.uf;
+  tip.innerHTML=tipFor(k);tip.hidden=false;
+  const x=Math.min(innerWidth-tip.offsetWidth-12,e.clientX+14),y=Math.min(innerHeight-tip.offsetHeight-12,e.clientY+14);
+  tip.style.left=x+"px";tip.style.top=y+"px";
+});
+$("map").addEventListener("pointerleave",()=>{tip.hidden=true;if(hov)hov.classList.remove("hov")});
+$("map").addEventListener("click",e=>{
+  const p=e.target.closest("path[data-k]");if(!p)return;tip.hidden=true;
+  const k=p.dataset.k;
+  if(!S.uf||S.uf==="zz"){S.uf=(p.dataset.uf||k).slice(0,2);S.city=MAPLEVEL==="mun"&&S.cargo===1?k:null}
+  else{S.city=k;if(S.cargo===6)fetchOne(6,k,S.uf).then(renderAll);else if(!R(S.cargo,k))fetchOne(S.cargo,k,S.uf).then(renderAll)}
+  persist();go(true);
+});
+$("q").addEventListener("change",async e=>{
+  await cmLoad().catch(()=>{});
+  const v=semAcento(e.target.value.replace(/\s+-\s+[A-Z]{2}$/i,""));const uf=(e.target.value.match(/-\s*([A-Za-z]{2})$/)||[])[1];
+  const hit=MUN.list.find(([k,u])=>semAcento(MUN.name[k])===v&&(!uf||u===uf.toLowerCase()))||MUN.list.find(([k])=>semAcento(MUN.name[k]).startsWith(v));
+  if(!hit)return;const[k,u]=hit;S.uf=u;S.city=k;if(S.cargo===6)S.cargo=1;e.target.value="";e.target.blur();persist();
+  fetchOne(S.cargo,k,u).then(renderAll);go(true);
+});
+
+/* ================= ciclo ================= */
+let lastMapSig="";
+function go(){
+  drawTabs();
+  const sig=`${S.cargo}|${S.uf&&S.uf!=="zz"?S.uf:""}|${S.geo}`;
+  if(sig!==lastMapSig){lastMapSig=sig;drawMap()}else{markSel();paintAll()}
+  renderAll();refresh();
+}
+function renderAll(){drawStatus();renderLead();renderChart();renderSide();renderFeed();labelsUpd();markSel()}
+let busy=false;
+async function refresh(){
+  if(busy)return;busy=true;
+  try{
+    const cargo=S.cargo;
+    const tasks=[fetchOne(1,"br","br",20000)];
+    if(S.uf&&S.uf!=="zz")tasks.push(fetchOne(cargo,S.uf,S.uf,20000));
+    if(S.uf==="zz")tasks.push(fetchOne(1,"zz","zz",20000));
+    if(S.city)tasks.push(fetchOne(cargo,S.city,S.uf,20000));
+    await Promise.all(tasks);renderAll();
+    // estados do cargo atual (mapa e colunas)
+    const ufs=UFS.map(u=>u.toLowerCase());
+    if(cargo!==6)await pool(cargo===1?[...ufs,"zz"]:ufs,8,async u=>{await fetchOne(cargo,u,u,50000)});
+    renderAll();paintAll();
+    // fundo: governador e senado para as atualizações
+    for(const c of [3,5])if(c!==cargo)await pool(ufs,6,async u=>{await fetchOne(c,u,u,110000)});
+    renderFeed();
+  }finally{busy=false}
+}
+setInterval(()=>{if(!document.hidden)refresh()},30000);
+setInterval(drawStatus,60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
+cmLoad().catch(()=>{});
+go();
+</script>
+</body>
+</html>
