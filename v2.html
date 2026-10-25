@@ -142,6 +142,23 @@ main{display:grid;grid-template-columns:400px minmax(0,1fr) 360px;gap:16px;paddi
 .tip div{display:flex;justify-content:space-between;gap:12px}
 .tip i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pc);margin-right:6px}
 
+/* tabela por lugar */
+.tbl{margin-top:16px;padding:16px 20px}
+.tbl h3{margin-bottom:4px}
+.trow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 64px 52px;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--line);cursor:pointer;font:400 13px/1.3 var(--f)}
+.trow:hover{background:rgba(255,255,255,.03)}
+.trow.h{cursor:default;border-top:0;padding:6px 0;font-size:11px;color:var(--muted)}
+.trow.h:hover{background:none}
+.trow .lg b{display:block;font-weight:500;color:var(--ink);overflow-wrap:anywhere}
+.trow .lg small{color:var(--muted)}
+.trow .who2{min-width:0}
+.trow .who2 span{display:block;font-weight:500;color:var(--pc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbar2{display:flex;height:6px;gap:2px;margin-top:5px}
+.sbar2 i{border-radius:2px;background:var(--pc)}
+.trow .pp{text-align:right;font-weight:600;font-size:15px;color:var(--ink)}
+.trow .ap{text-align:right;color:var(--muted)}
+@media (max-width:520px){.trow{grid-template-columns:minmax(0,1.5fr) minmax(0,1.3fr) 54px 40px;gap:8px}.tbl{padding:14px 16px}}
+.tmore{margin-top:8px;width:100%;border:1px solid var(--line);background:none;border-radius:999px;min-height:36px;font:500 13px/1 var(--f);color:var(--ink2)}
 /* regiões */
 .reg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
 .reg:first-of-type{border-top:0}
@@ -167,6 +184,11 @@ main{display:grid;grid-template-columns:400px minmax(0,1fr) 360px;gap:16px;paddi
 .pjbar::after{content:"";position:absolute;left:50%;top:-8px;bottom:-8px;width:1px;background:#8e8e96}
 .pjax{display:flex;justify-content:space-between;gap:8px;font:400 12px/1.3 var(--f);color:var(--muted)}
 .pjwin{margin:14px 0 0;font:400 20px/1.3 var(--serif);color:var(--ink)}
+.gates{display:grid;gap:8px;margin:14px 0 4px}
+.gate{display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:center;font:400 13px/1.3 var(--f);color:var(--ink2)}
+.gate i{width:10px;height:10px;border-radius:50%;border:2px solid var(--faint)}
+.gate.ok i{background:var(--live);border-color:var(--live)}
+.gate b{font-weight:500;color:var(--ink)}
 /* atualizações */
 .feed{display:grid;margin-top:8px}
 .ev{display:grid;grid-template-columns:44px 36px minmax(0,1fr);gap:12px;align-items:start;padding:14px 0;border-top:1px solid var(--line)}
@@ -245,6 +267,7 @@ footer a{color:var(--ink2)}
     </div>
     <div id="map"></div>
     <div class="mstatus"><span id="mcap"></span><span id="mprog" class="num"></span></div>
+    <div class="card tbl" id="tblCard"></div>
   </section>
 
   <section class="col r">
@@ -583,7 +606,7 @@ async function drawMap(){
       if(gm){body=gm.features.map(f=>{const k=MUN.byIbge[f.properties.codarea];return k?`<path data-k="${k}" data-uf="${k.slice(0,2)}" d="${pathD(f,pr)}"/>`:""}).join("")+
         `<g class="borders">${gu.features.map(f=>`<path d="${pathD(f,pr)}"/>`).join("")}</g>`}
       else body=gu.features.map(f=>{const u=UF_IBGE[f.properties.codarea];return u?`<path class="uf" data-k="${u.toLowerCase()}" d="${pathD(f,pr)}"/>`:""}).join("");
-      box.innerHTML=`<svg viewBox="-4 -4 ${pr.W+96} ${pr.H+8}" role="img" aria-label="Mapa do Brasil">${body}<g class="lbl"></g><g class="call"></g></svg>`;
+      box.innerHTML=`<svg viewBox="-4 -4 ${pr.W+104} ${pr.H+8}" role="img" aria-label="Mapa do Brasil">${body}<g class="lbl"></g><g class="call"></g></svg>`;
       MAPKEYS=gm?[...box.querySelectorAll("path[data-k]")].map(p=>p.dataset.k):UFS.map(u=>u.toLowerCase());
       MAPLEVEL=gm?"mun":"uf";
       paintAll();labels(gu,pr);
@@ -616,7 +639,7 @@ function paint(p){
   if(!r||!r.top.length||!(r.top[0].votos>0)){
     // enquanto a cidade não chega, mostra a cor do estado bem clara
     const su=R(S.cargo,k.slice(0,2));const L=su&&!S.cand&&S.mode!=="apur"&&su.top[0];
-    if(k.length>2&&L&&L.votos>0){p.style.fill=cor(L.partido);p.style.fillOpacity=.18}else{p.style.fill="";p.style.fillOpacity=""}
+    p.style.fill="";p.style.fillOpacity="";
     return}
   if(S.cargo===1&&S.cand){const c=r.top.find(x=>x.n===S.cand);const v=c?c.pct:0;p.style.fill=cor(CAND[S.cand]?.partido||"");p.style.fillOpacity=Math.max(.08,Math.min(1,v/70));return}
   if(S.cargo===1&&S.mode==="apur"){p.style.fill="#e9e9ee";p.style.fillOpacity=Math.max(.06,(r.pst||0)/100);return}
@@ -641,8 +664,11 @@ function legend(){
   MAPKEYS.forEach(k=>{if(S.uf&&S.uf!=="zz"&&!k.startsWith(S.uf))return;const r=R(S.cargo,k);if(!r)return;(dois?r.top.slice(0,2):r.top.slice(0,1)).forEach(L=>{if(L&&L.votos>0){n++;cnt[L.partido]=(cnt[L.partido]||0)+1}})});
   const ord=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,S.cargo===1?2:6);
   const unid=MAPLEVEL==="mun"?"municípios":dois?"vagas":"estados";
-  el.innerHTML=ord.map(([p,c])=>`<span style="--pc:${cor(p)}"><i></i>${esc(p)} <b class="num">${fN(c)}</b></span>`).join("")+(ord.length?`<span>${unid}</span>`:"")+
-    (S.cargo===1?`<span class="ramp">${[.42,.62,.82,1].map(o=>`<i style="background:#8e8ea0;opacity:${o}"></i>`).join("")}</span><span>vantagem até 10 · 25 · 45 · mais pontos</span>`:"");
+  const quem=p=>{if(S.cargo!==1)return esc(p);const c=Object.values(CAND).find(c=>semAcento(c.partido)===semAcento(p));return c?`${esc(nomeCurto(c))} (${esc(p)})`:esc(p)};
+  el.innerHTML=ord.map(([p,c])=>`<span style="--pc:${cor(p)}"><i></i>${quem(p)} lidera em <b class="num">${fN(c)}</b></span>`).join("")+(ord.length?`<span>${unid}</span>`:"")+
+    `<span><i style="background:#232327;border:1px solid #3a3a40"></i>sem votos ainda</span>`+
+    (S.cargo===1?`<span class="ramp">${[.42,.62,.82,1].map(o=>`<i style="background:#8e8ea0;opacity:${o}"></i>`).join("")}</span><span>cor mais forte = vantagem maior (até 10, 25, 45 e mais pontos)</span>`:"");
+  renderTable();
   $("mcap").textContent=S.uf&&S.uf!=="zz"?"Passe o dedo ou o mouse sobre uma cidade; toque para ver os votos dela.":S.cargo===1?"Toque num estado para ver as cidades.":S.cargo===5?"Listras: as duas vagas lideradas por partidos diferentes. Toque num estado para ver a disputa.":"Toque num estado para ver a disputa.";
 }
 /* rótulos: sigla + % do líder; estados pequenos do litoral ganham etiquetas fora do mapa */
@@ -666,15 +692,15 @@ function labelsUpd(){
   const W=PROJ.W;let h="",hc="";
   const out=LBL.filter(o=>FORA.includes(o.u)).sort((a,b)=>a.y-b.y);
   LBL.forEach(o=>{if(FORA.includes(o.u))return;const r=R(S.cargo,o.u),L=r?.top[0];
-    const pc=L&&L.votos>0?`${fP(L.pct,0)}%`:"";
+    const pc=L&&L.votos>0?`${esc(L.partido)} ${fP(L.pct,0)}%`:"";
     h+=`<text x="${o.x}" y="${o.y}" text-anchor="middle">${o.u.toUpperCase()}</text>${pc?`<text class="pc" x="${o.x}" y="${o.y+7.5}" text-anchor="middle">${pc}</text>`:""}`});
   // etiquetas externas
   let yy=Math.min(...out.map(o=>o.y))-10;
   out.forEach(o=>{const r=R(S.cargo,o.u),L=r?.top[0];const ok=L&&L.votos>0;
     const ty=Math.max(yy,o.y-5);yy=ty+14;const tx=W+30;
-    const txt=ok?`${fP(L.pct,0)}%`:"";
-    hc+=`<line x1="${o.x}" y1="${o.y}" x2="${tx}" y2="${ty+5}"/><rect x="${tx}" y="${ty}" width="58" height="11" rx="2" fill="${ok?cor(L.partido):"#2a2a2e"}"/><text x="${tx+5}" y="${ty+8}">${o.u.toUpperCase()}</text><text x="${tx+53}" y="${ty+8}" text-anchor="end">${txt}</text>`});
-  if(S.cargo===1){const z=R(1,"zz"),L=z?.top[0];if(L){const ty=yy+18,tx=W+30;hc+=`<rect x="${tx}" y="${ty}" width="58" height="11" rx="2" fill="${cor(L.partido)}" opacity=".9"/><text x="${tx+5}" y="${ty+8}">Exterior</text><text x="${tx+53}" y="${ty+8}" text-anchor="end">${fP(L.pct,0)}%</text>`}}
+    const txt=ok?`${esc(L.partido)} ${fP(L.pct,0)}%`:"";
+    hc+=`<line x1="${o.x}" y1="${o.y}" x2="${tx}" y2="${ty+5}"/><rect x="${tx}" y="${ty}" width="66" height="11" rx="2" fill="${ok?cor(L.partido):"#2a2a2e"}"/><text x="${tx+5}" y="${ty+8}">${o.u.toUpperCase()}</text><text x="${tx+61}" y="${ty+8}" text-anchor="end">${txt}</text>`});
+  if(S.cargo===1){const z=R(1,"zz"),L=z?.top[0];if(L){const ty=yy+18,tx=W+30;hc+=`<rect x="${tx}" y="${ty}" width="66" height="11" rx="2" fill="${cor(L.partido)}" opacity=".9"/><text x="${tx+5}" y="${ty+8}">Exterior</text><text x="${tx+61}" y="${ty+8}" text-anchor="end">${esc(L.partido)} ${fP(L.pct,0)}%</text>`}}
   g.innerHTML=h;c.innerHTML=hc;
 }
 function markSel(){const svg=$("map");svg.querySelectorAll("path.sel").forEach(p=>p.classList.remove("sel"));if(S.city){const p=svg.querySelector(`path[data-k="${S.city}"]`);if(p){p.classList.add("sel");p.parentNode.appendChild(p)}}}
@@ -714,11 +740,17 @@ $("q").addEventListener("change",async e=>{
 });
 
 /* ================= projeção (2º turno, presidente) =================
-   Modelo de "swing" por município: para cada cidade, compara a fatia do PT entre os dois candidatos em 2026
-   com a do 2º turno de 2022 (TSE, dados abertos). Cidades já apuradas entram com o voto real; o que falta
-   é estimado aplicando a variação (swing) da própria cidade, do estado ou do Brasil sobre a base de 2022.
-   A incerteza vem de 4.000 simulações com erro por estado e erro nacional, maiores quanto menos se apurou. */
+   Regras para não "chutar":
+   1) Sem número nenhum até haver base mínima: 10% dos votos esperados, cidades com votos em 25 dos 27 estados
+      e ao menos 1.000 municípios. Antes disso o quadro só mostra o progresso até essa base.
+   2) Com a base, mostra a tendência (estimativa e faixa de 95%), sem apontar vencedor.
+   3) Só aponta vencedor quando passa em dois testes: 99,9% das 10.000 simulações dão a mesma vitória
+      E ele vence até num cenário de estresse (o restante vota 3 desvios e mais 2 pontos contra ele em todos os estados).
+   4) "Definido pela matemática" quando o 2º colocado não alcança nem levando todos os votos que faltam (+10% de folga).
+   Modelo: cada cidade apurada é comparada à mesma cidade no 2º turno de 2022 (TSE, dados abertos). O que falta
+   é estimado pela variação (swing) da própria cidade, do estado ou do país sobre a base de 2022. */
 const PJ={t:0,res:null,loading:false,done:0,tot:0};
+const GATE={f:.10,uf:25,mun:1000};
 async function projLoop(){
   if(!T2||PJ.loading)return;
   try{await cmLoad()}catch(_){return}
@@ -727,46 +759,58 @@ async function projLoop(){
   PJ.loading=true;PJ.tot=keys.length;PJ.done=keys.length-todo.length;let last=0;
   await pool(todo,12,async k=>{await fetchOne(1,k,k.slice(0,2));PJ.done++;
     const p=$("map").querySelector(`path[data-k="${k}"]`);if(p&&S.cargo===1)paint(p);
-    if(Date.now()-last>1500){last=Date.now();computeProj();renderProj()}});
+    if(Date.now()-last>2000){last=Date.now();computeProj();renderProj()}});
   PJ.loading=false;computeProj();renderProj();if(S.cargo===1)legend();
 }
 function shareOf(r){let a=0,b=0;for(const c of r.top){if(c.n==="13")a=c.votos||0;else if(c.n==="22")b=c.votos||0}return[a,b]}
 function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
 function computeProj(){
   if(!D22||!D22.mun||!MUN.list.length)return;
-  const st={};let obsA=0,obsB=0,nRep=0,full26=0,full22=0,part26=0,part22=0;
-  const rows=[];
+  const st={};let obsA=0,obsB=0,nRep=0,full26=0,full22=0,part26=0,part22=0;const rows=[];
   for(const[k,u]of MUN.list){if(u==="zz")continue;const b=D22.mun[k];if(!b)continue;const a22=b[3]||0,c22=b[4]||0,t22=a22+c22;if(!t22)continue;
     const r=R(1,k);let v26=0,s26=NaN,pst=0;
     if(r&&r.pst>0){const[a,c]=shareOf(r);v26=a+c;if(v26>0){s26=a/v26;pst=r.pst;obsA+=a;obsB+=c;nRep++;if(pst>=100){full26+=v26;full22+=t22}else{part26+=v26/(pst/100);part22+=t22}}}
-    rows.push({k,u,base:a22/t22,t22,v26,s26,pst});
-    const S_=st[u]||(st[u]={w:0,sw:0,sw2:0,n:0,rem:0,remA:0,t22:0});S_.t22+=t22;
-    if(!isNaN(s26)){const sw=s26-a22/t22;S_.w+=v26;S_.sw+=sw*v26;S_.sw2+=sw*sw*v26;S_.n++}}
-  if(nRep<30)return PJ.res={wait:true,nRep,obsA,obsB};
+    rows.push({u,base:a22/t22,t22,v26,s26,pst});
+    const s=st[u]||(st[u]={w:0,sw:0,sw2:0,n:0,rem:0,remA:0,t22:0,obs:0});s.t22+=t22;s.obs+=v26;
+    if(!isNaN(s26)){const sw=s26-a22/t22;s.w+=v26;s.sw+=sw*v26;s.sw2+=sw*sw*v26;s.n++}}
   const T=full22>0&&full26>0?full26/full22:(part22>0?part26/part22:1);
+  let expAll=0;for(const s of Object.values(st))expAll+=s.t22*T;
+  const ufRep=Object.values(st).filter(s=>s.n>0).length;
+  const f0=expAll?(obsA+obsB)/expAll:0;
+  const base={nRep,ufRep,f:f0,obsA,obsB,t:new Date()};
+  if(!(f0>=GATE.f&&ufRep>=GATE.uf&&nRep>=GATE.mun))return PJ.res={...base,stage:"espera"};
   let W=0,SW=0;for(const s of Object.values(st)){W+=s.w;SW+=s.sw}const natSw=W?SW/W:0;
-  for(const[u,s]of Object.entries(st)){const m=s.w?s.sw/s.w:natSw,vr=s.w?Math.max(0,s.sw2/s.w-m*m):0;
-    const k=Math.min(1,s.n/8);s.swing=k*m+(1-k)*natSw;s.sd=Math.sqrt(vr)}
+  for(const s of Object.values(st)){const m=s.w?s.sw/s.w:natSw,vr=s.w?Math.max(0,s.sw2/s.w-m*m):0;
+    const k=Math.min(1,s.n/15);s.swing=k*m+(1-k)*natSw;s.sd=Math.sqrt(vr);s.fs=Math.min(1,s.obs/Math.max(1,s.t22*T))}
   for(const x of rows){const s=st[x.u];let rem,sh;
     if(x.v26>0){rem=x.pst<100?x.v26*(100/x.pst-1):0;const w=Math.min(1,x.pst/50);sh=x.base+w*(x.s26-x.base)+(1-w)*s.swing}
     else{rem=x.t22*T;sh=x.base+s.swing}
     sh=Math.min(.98,Math.max(.02,sh));s.rem+=rem;s.remA+=rem*sh}
-  // exterior
   let zA=0,zB=0,zRem=0,zRemA=0;const z=R(1,"zz"),z22=D22.uf?.ZZ?.["2"];
   if(z&&z.pst>0){const[a,c]=shareOf(z);zA=a;zB=c;const sh=a+c?a/(a+c):.5;zRem=(a+c)*(100/z.pst-1);zRemA=zRem*sh}
-  else if(z22){const t=z22[0]+z22[1];zRem=t*T;zRemA=zRem*(z22[0]/t+natSw)}
+  else if(z22){const t=z22[0]+z22[1];zRem=t*T;zRemA=zRem*Math.min(.98,Math.max(.02,z22[0]/t+natSw))}
   obsA+=zA;obsB+=zB;
   let remAll=zRem,remA=zRemA;for(const s of Object.values(st)){remAll+=s.rem;remA+=s.remA}
-  const tot=obsA+obsB+remAll,f=(obsA+obsB)/tot;
-  const pA=(obsA+remA)/tot;
-  // simulações
-  const N=4000,arr=new Float64Array(N);const ss=Object.values(st);
-  for(let i=0;i<N;i++){const en=gauss()*Math.max(.003,.025*(1-f));let a=obsA+remA+zRem*en;
-    for(const s of ss){if(!s.rem)continue;const sig=Math.sqrt((s.sd*s.sd)/(s.n+1)+.012*.012)*Math.min(1,s.rem/Math.max(1,s.t22*T));a+=s.rem*(en+gauss()*sig)}
+  const tot=obsA+obsB+remAll,f=(obsA+obsB)/tot,pA=(obsA+remA)/tot;
+  // simulações: erro nacional + erro por estado, ambos maiores quanto menos se apurou
+  const N=10000,arr=new Float64Array(N),ss=Object.values(st).filter(s=>s.rem>0);
+  const sN=Math.max(.005,.04*(1-f));
+  for(let i=0;i<N;i++){const en=gauss()*sN;let a=obsA+remA+zRem*en;
+    for(const s of ss){const sig=Math.sqrt(s.sd*s.sd/(s.n+1)+Math.pow(.02*(1-s.fs),2)+.008*.008);a+=s.rem*(en+gauss()*sig)}
     arr[i]=a/tot}
-  arr.sort();const win=arr.filter(x=>x>.5).length/N;
-  const gap=obsA-obsB;const need=remAll>0?(remAll+(gap))/(2*remAll):NaN; // fatia que o 22 precisaria dos votos restantes
-  PJ.res={pA,lo:arr[Math.floor(N*.05)],hi:arr[Math.floor(N*.95)],win,f,nRep,tot,remAll,obsA,obsB,need,swing:natSw,t:new Date()};
+  arr.sort();const winA=arr.filter(x=>x>.5).length/N;
+  // estresse: o que falta vota contra o líder projetado em todos os estados
+  const lead=pA>=.5?1:-1;let stressA=obsA+zRemA-lead*zRem*.02;
+  for(const s of ss){const m=Math.sqrt(s.sd*s.sd/(s.n+1));stressA+=s.remA-lead*s.rem*(3*m+.02)}
+  const stress=stressA/tot;
+  const stressOk=lead>0?stress>.5:stress<.5;
+  // matemática: o 2º colocado não alcança nem levando tudo o que falta (+10% de folga)
+  const gap=Math.abs(obsA-obsB),mat=gap>remAll*1.1;
+  const leadObsA=obsA>obsB;
+  let stage="tendencia";
+  if(mat)stage="matematica";
+  else if((lead>0?winA:1-winA)>=.999&&stressOk)stage="projetado";
+  PJ.res={...base,stage,pA,lo:arr[Math.floor(N*.025)],hi:arr[Math.floor(N*.975)],winA,f,tot,remAll,stress,leadObsA,swing:natSw,ufRep};
 }
 function renderProj(){
   const el=$("projCard");
@@ -774,27 +818,67 @@ function renderProj(){
   el.hidden=false;
   const br=R(1,"br");const A=br?.top.find(c=>c.n==="13"),B=br?.top.find(c=>c.n==="22");
   const nmA=A?tit(A.nome):"PT",nmB=B?tit(B.nome):"PL",cA=cor("PT"),cB=cor("PL");
-  const r=PJ.res;
-  const head=`<div class="kicker"><h3>Projeção do resultado</h3><span class="pill"><i style="background:var(--warn)"></i>Estimativa</span></div>`;
-  if(!r||r.wait){el.innerHTML=head+`<p class="msg" style="margin-top:12px">${PJ.tot?`Lendo os municípios no TSE: ${fN(PJ.done)} de ${fN(PJ.tot)}.`:"Carregando os municípios…"} A projeção aparece quando houver pelo menos 30 cidades com votos.</p>`;return}
-  const pA=r.pA*100,pB=100-pA,lead=pA>=50;
-  const winTxt=r.win>.995||r.win<.005?"praticamente certa":`${fP(Math.max(r.win,1-r.win)*100,0)}% de chance`;
-  const L=lead?nmA:nmB;
-  const needTxt=isNaN(r.need)||r.remAll<1?"":r.need>1?`${esc(nmB)} já não alcança ${esc(nmA)} com os votos que faltam.`:r.need<0?`${esc(nmA)} já não alcança ${esc(nmB)} com os votos que faltam.`:
-    (r.obsA>=r.obsB?`Para virar, ${esc(nmB)} precisaria de ${fP(r.need*100,1)}% dos cerca de ${fMi(r.remAll)} de votos válidos que ainda faltam.`:`Para virar, ${esc(nmA)} precisaria de ${fP((1-r.need)*100,1)}% dos cerca de ${fMi(r.remAll)} de votos válidos que ainda faltam.`);
+  const r=PJ.res;const hora=r?r.t.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"";
+  const pill={espera:["var(--muted)","Aguardando dados"],tendencia:["var(--warn)","Tendência"],projetado:["var(--live)","Projeção"],matematica:["var(--live)","Definido"]};
+  const [pc,pl]=pill[r?.stage||"espera"];
+  const head=`<div class="kicker"><h3>Projeção do resultado</h3><span class="pill"><i style="background:${pc}"></i>${pl}</span></div>`;
+  if(!r){el.innerHTML=head+`<p class="msg" style="margin-top:12px">${PJ.tot?`Lendo os municípios no TSE: ${fN(PJ.done)} de ${fN(PJ.tot)}.`:"Carregando os municípios…"}</p>`;return}
+  if(r.stage==="espera"){
+    const it=(ok,t,v)=>`<div class="gate${ok?" ok":""}"><i></i><span>${t}</span><b class="num">${v}</b></div>`;
+    el.innerHTML=head+`<p class="pjwin" style="font-size:18px">Ainda não há dados suficientes para projetar.</p>
+      <p class="note" style="margin-top:6px">A projeção só aparece quando os três critérios abaixo forem atingidos. Antes disso, qualquer número seria chute.</p>
+      <div class="gates">${it(r.f>=GATE.f,"Votos esperados já apurados",`${fP(r.f*100,1)}% de ${fP(GATE.f*100,0)}%`)}${it(r.ufRep>=GATE.uf,"Estados com cidades apuradas",`${r.ufRep} de ${GATE.uf}`)}${it(r.nRep>=GATE.mun,"Municípios com votos",`${fN(r.nRep)} de ${fN(GATE.mun)}`)}</div>
+      <p class="note">${PJ.loading?`Lendo municípios: ${fN(PJ.done)} de ${fN(PJ.tot)}. `:""}Atualizado às ${hora}.</p>`;return}
+  const pA=r.pA*100,pB=100-pA,leadA=pA>=50,L=leadA?nmA:nmB,Lc=leadA?cA:cB,O=leadA?nmB:nmA;
+  let msg;
+  if(r.stage==="matematica")msg=`<b style="color:${r.leadObsA?cA:cB}">${esc(r.leadObsA?nmA:nmB)}</b> está matematicamente eleito: ${esc(r.leadObsA?nmB:nmA)} não alcança nem com todos os votos que faltam.`;
+  else if(r.stage==="projetado")msg=`Projeção: <b style="color:${Lc}">${esc(L)}</b> vence a eleição.`;
+  else msg=`${esc(L)} à frente, mas ainda não dá para cravar.`;
+  const why=r.stage==="projetado"?`Em 99,9% das 10 mil simulações ${esc(L)} vence, e vence também no cenário de estresse, em que todo o restante vota bem pior para ele do que até agora (${esc(nmA)} ${fP(r.stress*100,1)}%).`:
+    r.stage==="tendencia"?`Para cravar, ${esc(L)} precisa vencer em pelo menos 99,9% das simulações e também no cenário de estresse. Hoje: ${fP((leadA?r.winA:1-r.winA)*100,1)}% das simulações; no estresse, ${esc(nmA)} ficaria com ${fP(r.stress*100,1)}%.`:"";
   el.innerHTML=head+`
     <div class="pj">
       <div style="--pc:${cA}"><small>${esc(nmA)}</small><b class="num">${fP(pA,1)}%</b></div>
       <div style="--pc:${cB}" class="r"><small>${esc(nmB)}</small><b class="num">${fP(pB,1)}%</b></div>
     </div>
     <div class="pjbar" aria-hidden="true"><span style="left:${r.lo*100}%;width:${(r.hi-r.lo)*100}%"></span><i style="left:${pA}%"></i></div>
-    <div class="pjax num"><span>${esc(nmA)} ${fP(r.lo*100,1)}–${fP(r.hi*100,1)}%</span><span>faixa provável (90%)</span></div>
-    <p class="pjwin">Vitória de <b style="color:${lead?cA:cB}">${esc(L)}</b>: ${winTxt}.</p>
-    ${needTxt?`<p class="note" style="margin-top:4px">${needTxt}</p>`:""}
+    <div class="pjax num"><span>${esc(nmA)} entre ${fP(r.lo*100,1)}% e ${fP(r.hi*100,1)}%</span><span>faixa de 95%</span></div>
+    <p class="pjwin">${msg}</p>
+    ${why?`<p class="note" style="margin-top:4px">${why}</p>`:""}
     <dl class="facts num" style="margin-top:12px"><dt>Já apurado</dt><dd>${fP(r.f*100,0)}% dos votos esperados</dd><dt>Municípios com votos</dt><dd>${fN(r.nRep)} de ${fN(PJ.tot||5570)}</dd><dt>Variação média vs. 2022</dt><dd>${r.swing>=0?"+":"−"}${fP(Math.abs(r.swing*100),1)} p.p. para ${esc(nmA)}</dd></dl>
-    <p class="note">Conta feita nesta página, não é número oficial do TSE. Cada cidade apurada é comparada ao 2º turno de 2022; o que falta é estimado pela variação da própria cidade, do estado ou do país. Atualizado às ${r.t.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}.</p>`;
+    <p class="note">Conta feita nesta página, não é número oficial do TSE. Cada cidade apurada é comparada ao 2º turno de 2022; o que falta é estimado pela variação da própria cidade, do estado ou do país. Atualizado às ${hora}.</p>`;
 }
 setInterval(()=>{if(!document.hidden)projLoop()},180000);
+/* ================= tabela: quem lidera em cada lugar ================= */
+let TBLN=12;
+function renderTable(){
+  const el=$("tblCard");if(!el)return;
+  const nat=!S.uf||S.uf==="zz";
+  if(S.cargo===6&&!nat){el.hidden=true;return}
+  let keys=nat?UFS.map(u=>u.toLowerCase()):MAPKEYS.filter(k=>k.startsWith(S.uf));
+  let rows=keys.map(k=>({k,r:R(S.cargo,k)})).filter(x=>x.r&&x.r.top.length&&x.r.top[0].votos>0);
+  const nome=k=>k.length===2?UF_NOME[k.toUpperCase()]:(MUN.name[k]||k);
+  rows.sort((a,b)=>(b.r.vt||0)-(a.r.vt||0));
+  const total=keys.length;
+  el.hidden=false;
+  if(!rows.length){el.innerHTML=`<h3>${nat?"Quem lidera em cada estado":"Quem lidera nas maiores cidades"}</h3><p class="note">Ainda sem votos publicados.</p>`;return}
+  const show=rows.slice(0,nat?27:TBLN);
+  el.innerHTML=`<div class="kicker"><h3>${nat?"Quem lidera em cada estado":"Maiores cidades · "+esc(UF_NOME[S.uf.toUpperCase()])}</h3><span>${fN(rows.length)} de ${fN(total)} com votos</span></div>
+    <div class="trow h"><span>${nat?"Estado":"Cidade"}</span><span>Quem lidera</span><span style="text-align:right">% dos válidos</span><span style="text-align:right">Apurado</span></div>`+
+    show.map(({k,r})=>{const A=r.top[0],B=r.top[1];const vag=S.cargo===5?2:1;
+      const lider=S.cargo===5&&B?`${esc(nomeCurto(A))} e ${esc(nomeCurto(B))}`:esc(nomeCurto(A));
+      const parts=r.top.slice(0,S.cargo===5?3:2);const rest=Math.max(0,100-parts.reduce((s,c)=>s+(c.pct||0),0));
+      return `<div class="trow" data-k="${k}" style="--pc:${cor(A.partido)}"><div class="lg"><b>${esc(nome(k))}</b><small>${k.length===2?k.toUpperCase():fN(r.vt)+" votos"}</small></div>
+        <div class="who2"><span>${lider} <small style="color:var(--muted)">${esc(A.partido)}${S.cargo===5&&B?"/"+esc(B.partido):""}</small></span><div class="sbar2">${parts.map(c=>`<i style="--pc:${cor(c.partido)};flex:${c.pct||0}"></i>`).join("")}<i style="--pc:#2a2a2e;flex:${rest}"></i></div></div>
+        <div class="pp num">${fP(A.pct,1)}%</div><div class="ap num">${fP(r.pst,0)}%</div></div>`}).join("")+
+    (!nat&&rows.length>TBLN?`<button class="tmore" id="tblMore">Ver mais cidades</button>`:"");
+}
+$("tblCard").addEventListener("click",e=>{
+  if(e.target.id==="tblMore"){TBLN+=30;renderTable();return}
+  const row=e.target.closest(".trow[data-k]");if(!row)return;const k=row.dataset.k;
+  if(k.length===2){S.uf=k;S.city=null}else{S.city=k}
+  persist();go(true);scrollTo({top:0,behavior:"smooth"});
+});
 
 /* ================= ciclo ================= */
 let lastMapSig="";
@@ -804,7 +888,7 @@ function go(){
   if(sig!==lastMapSig){lastMapSig=sig;drawMap()}else{markSel();paintAll()}
   renderAll();refresh();
 }
-function renderAll(){drawStatus();renderLead();renderProj();renderChart();renderSide();renderFeed();labelsUpd();markSel()}
+function renderAll(){drawStatus();renderLead();renderProj();renderTable();renderChart();renderSide();renderFeed();labelsUpd();markSel()}
 let busy=false;
 async function refresh(){
   if(busy)return;busy=true;
