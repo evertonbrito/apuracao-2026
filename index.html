@@ -285,7 +285,7 @@ footer>div:last-child{display:flex;gap:var(--s2)}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><small>Apuração do 1º turno</small><b>Eleições 2026</b></div>
+  <div class="brand"><small id="turnoTxt">Apuração do 2º turno</small><b>Eleições 2026</b></div>
   <div class="pst"><b class="num" id="pstTop">–</b><span><i class="dot" id="dot"></i>das seções</span></div>
   <nav class="tabs" id="views" aria-label="Visualização"><button class="tab" data-v="painel" aria-pressed="true">Painel</button><button class="tab" data-v="mapa" aria-pressed="false">Mapa</button><button class="tab" data-v="comp" aria-pressed="false">Comparar</button></nav>
 </header>
@@ -377,8 +377,9 @@ Object.assign(S,load("ap26",{}),{data:null,timer:null,showAll:false});if(!(S.rot
 
 function env(){return S.sim
   ?{base:"https://resultados-sim.tse.jus.br/simulado/simulado2026/ele2026",fed:21270,est:21272}
-  :{base:"https://resultados.tse.jus.br/oficial/ele2026",fed:6257,est:6259}}
-function code(){const e=env();return S.cargo===1?e.fed:e.est}
+  :{base:"https://resultados.tse.jus.br/oficial/ele2026",fed:6257,est:6259,fed2:6258,est2:6260}}
+const T2=new URLSearchParams(location.search).get("t")!=="1";
+function code(){const e=env();return S.cargo===1?(T2&&e.fed2?e.fed2:e.fed):(S.cargo===3&&T2&&e.est2?e.est2:e.est)}
 function url(){const c=code();return `${env().base}/${c}/dados/${S.uf}/${S.uf}-c${String(S.cargo).padStart(4,"0")}-e${String(c).padStart(6,"0")}-u.json`}
 function foto(sq){return sq?`${env().base}/${code()}/fotos/${S.uf}/${sq}.jpeg`:""}
 
@@ -388,7 +389,7 @@ function cands(d){
   const out=[];
   (function w(o,p){if(!o||typeof o!=="object")return;if(Array.isArray(o)){o.forEach(x=>w(x,p));return}
     const pp=o.sg||(o.cand&&o.nm)||p;
-    if(Array.isArray(o.cand))o.cand.forEach(c=>out.push({n:c.n,sq:c.sqcand||c.sq||"",nome:c.nmu||c.nm||"—",partido:c.cc||pp||"",votos:num(c.vap),pct:num(c.pvap),st:(c.st||"").trim(),eleito:c.e==="s"}));
+    if(Array.isArray(o.cand))o.cand.forEach(c=>out.push({n:c.n,sq:c.sqcand||c.sq||"",nome:c.nmu||c.nm||"—",partido:c.cc||pp||"",votos:num(c.vap),pct:num(c.pvap),st:(c.st||"").trim(),eleito:c.e==="s"&&!/turno/i.test(c.st||"")}));
     for(const[k,v]of Object.entries(o))if(k!=="cand"&&v&&typeof v==="object")w(v,pp)})(d,"");
   const seen=new Set();
   return out.filter(c=>{const k=c.n+"|"+c.nome;if(seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>(b.votos||0)-(a.votos||0));
@@ -421,7 +422,7 @@ function change(){S.data=null;S.showAll=false;persist();drawTabs();render();fetc
 function persist(){save("ap26",{cargo:S.cargo,uf:S.uf,sim:S.sim,rota:S.rota,view:S.view})}
 
 /* histórico para o gráfico e para as setas de variação */
-const hkey=()=>`h26:${S.sim?"s":"o"}:${S.cargo}:${S.uf}`;
+const hkey=()=>`h26:${S.sim?"s":"o"}${T2&&(S.cargo===1||S.cargo===3)?":t2":""}:${S.cargo}:${S.uf}`;
 function pushHist(d,list){
   const pst=num(deep(d,["pst"]));if(isNaN(pst))return;
   const h=load(hkey(),[]);const last=h[h.length-1];
