@@ -600,7 +600,7 @@ async function drawMap(){
       const gu=await geoUF();if(tok!==mapTok)return;
       const useMun=S.cargo===1&&S.geo==="mun";
       let gm=null;
-      if(useMun){try{[gm]=await Promise.all([geoBR(),cmLoad()])}catch(e){gm=null;$("mcap").textContent="Não consegui carregar os municípios; mostrando estados."}}
+      if(useMun){try{[gm]=await Promise.all([geoBR(),cmLoad()])}catch(e){gm=null;$("mcap").textContent="Não consegui carregar os municípios agora; mostrando estados e tentando de novo.";setTimeout(()=>{if(S.geo==="mun"&&(!S.uf||S.uf==="zz")){lastMapSig="";go()}},15000)}}
       if(tok!==mapTok)return;
       const pr=projFor(gu);PROJ=pr;
       let body="";
@@ -754,7 +754,7 @@ const PJ={t:0,res:null,loading:false,done:0,tot:0};
 const GATE={f:.10,uf:25,mun:1000};
 async function projLoop(){
   if(!T2||PJ.loading)return;
-  try{await cmLoad()}catch(_){return}
+  try{await cmLoad()}catch(_){setTimeout(projLoop,10000);return}
   const keys=MUN.list.filter(([,u])=>u!=="zz").map(([k])=>k);
   const now=Date.now();
   const todo=keys.filter(k=>{const e=DB[key(1,k)];if(!e)return true;if(e.r&&e.r.pst>=100)return false;const age=now-e.t;
