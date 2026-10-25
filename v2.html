@@ -356,7 +356,7 @@ function resumo(d){const l=cands(d);return{
   st:num(deep(d,["st"])),ts:num(deep(d,["ts"])),nv:num(deep(d,["nv"])),top:l.slice(0,12)}}
 async function fetchOne(cargo,abr,uf,maxAge){
   const k=key(cargo,abr),e=DB[k];if(e&&maxAge&&Date.now()-e.t<maxAge)return e;
-  if(e&&e.err==="404"&&Date.now()-e.t<600000)return e;
+  if(e&&e.err==="404"&&Date.now()-e.t<170000)return e;
   try{const d=await getJSON(arq(cargo,abr,uf));const prev=DB[k];DB[k]={t:Date.now(),r:resumo(d)};onNew(cargo,abr,prev&&prev.r,DB[k].r);return DB[k]}
   catch(err){if(!DB[k])DB[k]={t:Date.now(),r:null,err:err.status===404?"404":"erro"};else DB[k].t=Date.now();return DB[k]}
 }
@@ -411,7 +411,8 @@ function drawStatus(){
   const hg=String(r.hg||"").slice(0,5).replace(":","h");
   const idade=(Date.now()-tsOf({dg:r.dg,h:r.hg}))/60000;
   dot.className="dot"+(r.pst<100&&idade>10?" warn":"");
-  st.innerHTML=`<span class="long">Atualizado às </span>${hg} · ${fP(r.pst,r.pst>=100?0:2)}% das seções`+(r.pst<100&&idade>10?` <span class="muted">· TSE parado há ${idade<60?Math.floor(idade)+" min":Math.floor(idade/60)+"h"+pad(Math.floor(idade%60),2)}</span>`:"");
+  const lido=LIDO?Math.max(0,Math.round((Date.now()-LIDO)/1000)):NaN;
+  st.innerHTML=`<span class="long">TSE às </span>${hg} · ${fP(r.pst,r.pst>=100?0:2)}% das seções`+(r.pst<100&&!isNaN(lido)?` <span class="muted">· conferido há ${lido<60?lido+" s":Math.floor(lido/60)+" min"}</span>`:"")+(r.pst<100&&idade>10?` <span class="muted">· TSE parado há ${idade<60?Math.floor(idade)+" min":Math.floor(idade/60)+"h"+pad(Math.floor(idade%60),2)}</span>`:"");
 }
 
 /* ================= coluna da esquerda ================= */
@@ -610,7 +611,7 @@ async function drawMap(){
       MAPKEYS=gm?[...box.querySelectorAll("path[data-k]")].map(p=>p.dataset.k):UFS.map(u=>u.toLowerCase());
       MAPLEVEL=gm?"mun":"uf";
       paintAll();labels(gu,pr);
-      if(gm)loadMuns(tok);
+      if(gm&&!(T2&&S.cargo===1))loadMuns(tok);
     }else{
       const [g]=await Promise.all([geoEst(S.uf),cmLoad()]);if(tok!==mapTok)return;
       const pr=projFor(g);
@@ -755,12 +756,16 @@ async function projLoop(){
   if(!T2||PJ.loading)return;
   try{await cmLoad()}catch(_){return}
   const keys=MUN.list.filter(([,u])=>u!=="zz").map(([k])=>k);
-  const todo=keys.filter(k=>{const e=DB[key(1,k)];if(e&&e.r&&e.r.pst>=100)return false;return !e||Date.now()-e.t>180000});
+  const now=Date.now();
+  const todo=keys.filter(k=>{const e=DB[key(1,k)];if(!e)return true;if(e.r&&e.r.pst>=100)return false;const age=now-e.t;
+    if(e.err==="404")return age>170000;const sp=R(1,k.slice(0,2))?.pst||0;return age>40000&&(e.sp==null||sp>e.sp||age>300000)});
+  todo.sort((a,b)=>(DB[key(1,a)]?1:0)-(DB[key(1,b)]?1:0));
   PJ.loading=true;PJ.tot=keys.length;PJ.done=keys.length-todo.length;let last=0;
-  await pool(todo,12,async k=>{await fetchOne(1,k,k.slice(0,2));PJ.done++;
+  await pool(todo,14,async k=>{const sp=R(1,k.slice(0,2))?.pst||0;const e=await fetchOne(1,k,k.slice(0,2));if(e)e.sp=sp;PJ.done++;
     const p=$("map").querySelector(`path[data-k="${k}"]`);if(p&&S.cargo===1)paint(p);
     if(Date.now()-last>2000){last=Date.now();computeProj();renderProj()}});
   PJ.loading=false;computeProj();renderProj();if(S.cargo===1)legend();
+  if(!document.hidden&&(R(1,"br")?.pst||0)<100)setTimeout(projLoop,todo.length>200?5000:30000);
 }
 function shareOf(r){let a=0,b=0;for(const c of r.top){if(c.n==="13")a=c.votos||0;else if(c.n==="22")b=c.votos||0}return[a,b]}
 function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
@@ -848,7 +853,7 @@ function renderProj(){
     <dl class="facts num" style="margin-top:12px"><dt>Já apurado</dt><dd>${fP(r.f*100,0)}% dos votos esperados</dd><dt>Municípios com votos</dt><dd>${fN(r.nRep)} de ${fN(PJ.tot||5570)}</dd><dt>Variação média vs. 2022</dt><dd>${r.swing>=0?"+":"−"}${fP(Math.abs(r.swing*100),1)} p.p. para ${esc(nmA)}</dd></dl>
     <p class="note">Conta feita nesta página, não é número oficial do TSE. Cada cidade apurada é comparada ao 2º turno de 2022; o que falta é estimado pela variação da própria cidade, do estado ou do país. Atualizado às ${hora}.</p>`;
 }
-setInterval(()=>{if(!document.hidden)projLoop()},180000);
+setInterval(()=>{if(!document.hidden)projLoop()},120000);
 /* ================= tabela: quem lidera em cada lugar ================= */
 let TBLN=12;
 function renderTable(){
@@ -894,22 +899,25 @@ async function refresh(){
   if(busy)return;busy=true;
   try{
     const cargo=S.cargo;
-    const tasks=[fetchOne(1,"br","br",20000)];
-    if(S.uf&&S.uf!=="zz")tasks.push(fetchOne(cargo,S.uf,S.uf,20000));
-    if(S.uf==="zz")tasks.push(fetchOne(1,"zz","zz",20000));
-    if(S.city)tasks.push(fetchOne(cargo,S.city,S.uf,20000));
+    const tasks=[fetchOne(1,"br","br",8000)];
+    if(S.uf&&S.uf!=="zz")tasks.push(fetchOne(cargo,S.uf,S.uf,8000));
+    if(S.uf==="zz")tasks.push(fetchOne(1,"zz","zz",8000));
+    if(S.city)tasks.push(fetchOne(cargo,S.city,S.uf,8000));
     await Promise.all(tasks);renderAll();
     // estados do cargo atual (mapa e colunas)
     const ufs=UFS.map(u=>u.toLowerCase());
-    if(cargo!==6)await pool(cargo===1?[...ufs,"zz"]:ufs,8,async u=>{await fetchOne(cargo,u,u,50000)});
-    renderAll();paintAll();
-    // fundo: governador e senado para as atualizações
-    for(const c of [3,5])if(c!==cargo)await pool(ufs,6,async u=>{await fetchOne(c,u,u,110000)});
-    renderFeed();
+    if(cargo!==6)await pool(cargo===1?[...ufs,"zz"]:ufs,10,async u=>{await fetchOne(cargo,u,u,20000)});
+    LIDO=Date.now();renderAll();paintAll();
   }finally{busy=false}
 }
-setInterval(()=>{if(!document.hidden)refresh()},30000);
-setInterval(drawStatus,60000);
+let LIDO=0;
+// governador e senado (para as atualizações) em ciclo próprio, mais lento, sem atrasar o presidente
+let feedBusy=false;
+async function feedLoop(){if(feedBusy)return;feedBusy=true;try{const ufs=UFS.map(u=>u.toLowerCase());
+  for(const c of [3,5])if(c!==S.cargo)await pool(ufs,6,async u=>{await fetchOne(c,u,u,170000)});renderFeed()}finally{feedBusy=false}}
+setInterval(()=>{if(!document.hidden)refresh()},15000);
+setInterval(()=>{if(!document.hidden)feedLoop()},180000);setTimeout(feedLoop,20000);
+setInterval(drawStatus,5000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
 cmLoad().catch(()=>{});
 $("turnoTag").textContent=T2?"2º turno":"1º turno";
