@@ -156,6 +156,17 @@ main{display:grid;grid-template-columns:400px minmax(0,1fr) 360px;gap:16px;paddi
 .mini.nt::after{display:none}
 .mini::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:#fff}
 
+/* projeção */
+.pj{display:grid;grid-template-columns:1fr 1fr;margin-top:16px}
+.pj>div{display:grid;gap:2px}.pj>div.r{justify-items:end;text-align:right}
+.pj small{font:500 13px/1.2 var(--f);color:var(--pc)}
+.pj b{font:400 40px/1 var(--f);letter-spacing:-.04em}
+.pjbar{position:relative;height:10px;margin:16px 0 6px;border-radius:5px;background:linear-gradient(90deg,var(--l,#e5383b) 0 50%,#4361ee 50% 100%);opacity:.9}
+.pjbar span{position:absolute;top:-3px;bottom:-3px;border:1.5px solid #fff;border-radius:4px;background:rgba(255,255,255,.12)}
+.pjbar i{position:absolute;top:-6px;bottom:-6px;width:3px;margin-left:-1.5px;background:#fff;border-radius:2px}
+.pjbar::after{content:"";position:absolute;left:50%;top:-8px;bottom:-8px;width:1px;background:#8e8e96}
+.pjax{display:flex;justify-content:space-between;gap:8px;font:400 12px/1.3 var(--f);color:var(--muted)}
+.pjwin{margin:14px 0 0;font:400 20px/1.3 var(--serif);color:var(--ink)}
 /* atualizações */
 .feed{display:grid;margin-top:8px}
 .ev{display:grid;grid-template-columns:44px 36px minmax(0,1fr);gap:12px;align-items:start;padding:14px 0;border-top:1px solid var(--line)}
@@ -190,7 +201,7 @@ footer a{color:var(--ink2)}
   #extBtn{order:5}
   main{grid-template-columns:minmax(0,1fr);max-width:720px;margin:0 auto;padding:16px}
   .col.l,.col.r{display:contents}
-  #lead{order:1}.col.c{order:2}#side{order:3}#chartCard{order:4}#feedCard{order:5}
+  #lead{order:1}#projCard{order:1}.col.c{order:2}#side{order:3}#chartCard{order:4}#feedCard{order:5}
   #map svg{max-height:none}
   .mleg{margin-left:0}
   .head{font-size:28px}
@@ -218,6 +229,7 @@ footer a{color:var(--ink2)}
 <main>
   <section class="col l">
     <article class="card" id="lead"><p class="msg">Carregando dados do TSE…</p></article>
+    <article class="card" id="projCard" hidden></article>
     <article class="card" id="chartCard">
       <h3>Ao longo da apuração</h3>
       <div class="chartLegend" id="chartLeg"></div>
@@ -485,7 +497,7 @@ function renderChart(){
 
 /* ================= coluna da direita ================= */
 let D22=null;
-fetch("dados2022.json").then(r=>r.ok?r.json():null).then(d=>{D22=d;renderSide()}).catch(()=>{});
+fetch("dados2022.json").then(r=>r.ok?r.json():null).then(d=>{D22=d;renderSide();computeProj();renderProj()}).catch(()=>{});
 function renderSide(){
   const el=$("side");
   if(S.cargo===1){
@@ -532,7 +544,10 @@ $("feed").addEventListener("click",e=>{if(e.target.id==="feedMore"){FEEDN+=20;fe
 /* ================= mapa ================= */
 const MUN={cm:null,name:{},list:[],byIbge:{},geoBR:null,geoUF:null,geoSt:{}};
 async function cmLoad(){
-  if(MUN.cm)return MUN.cm;
+  if(MUN.cm)return MUN.cm;if(MUN.cmP)return MUN.cmP;
+  MUN.cmP=cmLoad2();try{return await MUN.cmP}catch(e){MUN.cmP=null;throw e}
+}
+async function cmLoad2(){
   const d=await getJSON(`${ENV.base}/${ENV.fed}/config/mun-e${pad(ENV.fed,6)}-cm.json`,30000);
   const by={};
   for(const u of d.abr){by[u.cd]=(u.mu||[]).map(m=>({cd:m.cd,nm:m.nm,cdi:m.cdi}));for(const m of (u.mu||[])){const k=u.cd+m.cd;MUN.byIbge[m.cdi]=k;MUN.name[k]=tit(m.nm);MUN.list.push([k,u.cd])}}
@@ -586,7 +601,7 @@ async function drawMap(){
 let MAPKEYS=[],MAPLEVEL="uf";
 async function loadMuns(tok,uf){
   const keys=MAPKEYS.filter(k=>!uf||k.startsWith(uf));
-  const todo=keys.filter(k=>{const e=DB[key(S.cargo,k)];return !e||Date.now()-e.t>(S.uf?120000:600000)});
+  const todo=keys.filter(k=>{const e=DB[key(S.cargo,k)];if(e&&e.r&&e.r.pst>=100)return false;return !e||Date.now()-e.t>(S.uf?120000:600000)});
   let done=keys.length-todo.length;const tot=keys.length;const cargo=S.cargo;
   const upd=()=>{$("mprog").textContent=done<tot?`Carregando ${fN(done)} de ${fN(tot)} municípios`:"";};upd();
   let last=0;
@@ -698,6 +713,89 @@ $("q").addEventListener("change",async e=>{
   fetchOne(S.cargo,k,u).then(renderAll);go(true);
 });
 
+/* ================= projeção (2º turno, presidente) =================
+   Modelo de "swing" por município: para cada cidade, compara a fatia do PT entre os dois candidatos em 2026
+   com a do 2º turno de 2022 (TSE, dados abertos). Cidades já apuradas entram com o voto real; o que falta
+   é estimado aplicando a variação (swing) da própria cidade, do estado ou do Brasil sobre a base de 2022.
+   A incerteza vem de 4.000 simulações com erro por estado e erro nacional, maiores quanto menos se apurou. */
+const PJ={t:0,res:null,loading:false,done:0,tot:0};
+async function projLoop(){
+  if(!T2||PJ.loading)return;
+  try{await cmLoad()}catch(_){return}
+  const keys=MUN.list.filter(([,u])=>u!=="zz").map(([k])=>k);
+  const todo=keys.filter(k=>{const e=DB[key(1,k)];if(e&&e.r&&e.r.pst>=100)return false;return !e||Date.now()-e.t>180000});
+  PJ.loading=true;PJ.tot=keys.length;PJ.done=keys.length-todo.length;let last=0;
+  await pool(todo,12,async k=>{await fetchOne(1,k,k.slice(0,2));PJ.done++;
+    const p=$("map").querySelector(`path[data-k="${k}"]`);if(p&&S.cargo===1)paint(p);
+    if(Date.now()-last>1500){last=Date.now();computeProj();renderProj()}});
+  PJ.loading=false;computeProj();renderProj();if(S.cargo===1)legend();
+}
+function shareOf(r){let a=0,b=0;for(const c of r.top){if(c.n==="13")a=c.votos||0;else if(c.n==="22")b=c.votos||0}return[a,b]}
+function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function computeProj(){
+  if(!D22||!D22.mun||!MUN.list.length)return;
+  const st={};let obsA=0,obsB=0,nRep=0,full26=0,full22=0,part26=0,part22=0;
+  const rows=[];
+  for(const[k,u]of MUN.list){if(u==="zz")continue;const b=D22.mun[k];if(!b)continue;const a22=b[3]||0,c22=b[4]||0,t22=a22+c22;if(!t22)continue;
+    const r=R(1,k);let v26=0,s26=NaN,pst=0;
+    if(r&&r.pst>0){const[a,c]=shareOf(r);v26=a+c;if(v26>0){s26=a/v26;pst=r.pst;obsA+=a;obsB+=c;nRep++;if(pst>=100){full26+=v26;full22+=t22}else{part26+=v26/(pst/100);part22+=t22}}}
+    rows.push({k,u,base:a22/t22,t22,v26,s26,pst});
+    const S_=st[u]||(st[u]={w:0,sw:0,sw2:0,n:0,rem:0,remA:0,t22:0});S_.t22+=t22;
+    if(!isNaN(s26)){const sw=s26-a22/t22;S_.w+=v26;S_.sw+=sw*v26;S_.sw2+=sw*sw*v26;S_.n++}}
+  if(nRep<30)return PJ.res={wait:true,nRep,obsA,obsB};
+  const T=full22>0&&full26>0?full26/full22:(part22>0?part26/part22:1);
+  let W=0,SW=0;for(const s of Object.values(st)){W+=s.w;SW+=s.sw}const natSw=W?SW/W:0;
+  for(const[u,s]of Object.entries(st)){const m=s.w?s.sw/s.w:natSw,vr=s.w?Math.max(0,s.sw2/s.w-m*m):0;
+    const k=Math.min(1,s.n/8);s.swing=k*m+(1-k)*natSw;s.sd=Math.sqrt(vr)}
+  for(const x of rows){const s=st[x.u];let rem,sh;
+    if(x.v26>0){rem=x.pst<100?x.v26*(100/x.pst-1):0;const w=Math.min(1,x.pst/50);sh=x.base+w*(x.s26-x.base)+(1-w)*s.swing}
+    else{rem=x.t22*T;sh=x.base+s.swing}
+    sh=Math.min(.98,Math.max(.02,sh));s.rem+=rem;s.remA+=rem*sh}
+  // exterior
+  let zA=0,zB=0,zRem=0,zRemA=0;const z=R(1,"zz"),z22=D22.uf?.ZZ?.["2"];
+  if(z&&z.pst>0){const[a,c]=shareOf(z);zA=a;zB=c;const sh=a+c?a/(a+c):.5;zRem=(a+c)*(100/z.pst-1);zRemA=zRem*sh}
+  else if(z22){const t=z22[0]+z22[1];zRem=t*T;zRemA=zRem*(z22[0]/t+natSw)}
+  obsA+=zA;obsB+=zB;
+  let remAll=zRem,remA=zRemA;for(const s of Object.values(st)){remAll+=s.rem;remA+=s.remA}
+  const tot=obsA+obsB+remAll,f=(obsA+obsB)/tot;
+  const pA=(obsA+remA)/tot;
+  // simulações
+  const N=4000,arr=new Float64Array(N);const ss=Object.values(st);
+  for(let i=0;i<N;i++){const en=gauss()*Math.max(.003,.025*(1-f));let a=obsA+remA+zRem*en;
+    for(const s of ss){if(!s.rem)continue;const sig=Math.sqrt((s.sd*s.sd)/(s.n+1)+.012*.012)*Math.min(1,s.rem/Math.max(1,s.t22*T));a+=s.rem*(en+gauss()*sig)}
+    arr[i]=a/tot}
+  arr.sort();const win=arr.filter(x=>x>.5).length/N;
+  const gap=obsA-obsB;const need=remAll>0?(remAll+(gap))/(2*remAll):NaN; // fatia que o 22 precisaria dos votos restantes
+  PJ.res={pA,lo:arr[Math.floor(N*.05)],hi:arr[Math.floor(N*.95)],win,f,nRep,tot,remAll,obsA,obsB,need,swing:natSw,t:new Date()};
+}
+function renderProj(){
+  const el=$("projCard");
+  if(!T2||S.cargo!==1||(S.uf&&S.uf!=="zz")){el.hidden=true;return}
+  el.hidden=false;
+  const br=R(1,"br");const A=br?.top.find(c=>c.n==="13"),B=br?.top.find(c=>c.n==="22");
+  const nmA=A?tit(A.nome):"PT",nmB=B?tit(B.nome):"PL",cA=cor("PT"),cB=cor("PL");
+  const r=PJ.res;
+  const head=`<div class="kicker"><h3>Projeção do resultado</h3><span class="pill"><i style="background:var(--warn)"></i>Estimativa</span></div>`;
+  if(!r||r.wait){el.innerHTML=head+`<p class="msg" style="margin-top:12px">${PJ.tot?`Lendo os municípios no TSE: ${fN(PJ.done)} de ${fN(PJ.tot)}.`:"Carregando os municípios…"} A projeção aparece quando houver pelo menos 30 cidades com votos.</p>`;return}
+  const pA=r.pA*100,pB=100-pA,lead=pA>=50;
+  const winTxt=r.win>.995||r.win<.005?"praticamente certa":`${fP(Math.max(r.win,1-r.win)*100,0)}% de chance`;
+  const L=lead?nmA:nmB;
+  const needTxt=isNaN(r.need)||r.remAll<1?"":r.need>1?`${esc(nmB)} já não alcança ${esc(nmA)} com os votos que faltam.`:r.need<0?`${esc(nmA)} já não alcança ${esc(nmB)} com os votos que faltam.`:
+    (r.obsA>=r.obsB?`Para virar, ${esc(nmB)} precisaria de ${fP(r.need*100,1)}% dos cerca de ${fMi(r.remAll)} de votos válidos que ainda faltam.`:`Para virar, ${esc(nmA)} precisaria de ${fP((1-r.need)*100,1)}% dos cerca de ${fMi(r.remAll)} de votos válidos que ainda faltam.`);
+  el.innerHTML=head+`
+    <div class="pj">
+      <div style="--pc:${cA}"><small>${esc(nmA)}</small><b class="num">${fP(pA,1)}%</b></div>
+      <div style="--pc:${cB}" class="r"><small>${esc(nmB)}</small><b class="num">${fP(pB,1)}%</b></div>
+    </div>
+    <div class="pjbar" aria-hidden="true"><span style="left:${r.lo*100}%;width:${(r.hi-r.lo)*100}%"></span><i style="left:${pA}%"></i></div>
+    <div class="pjax num"><span>${esc(nmA)} ${fP(r.lo*100,1)}–${fP(r.hi*100,1)}%</span><span>faixa provável (90%)</span></div>
+    <p class="pjwin">Vitória de <b style="color:${lead?cA:cB}">${esc(L)}</b>: ${winTxt}.</p>
+    ${needTxt?`<p class="note" style="margin-top:4px">${needTxt}</p>`:""}
+    <dl class="facts num" style="margin-top:12px"><dt>Já apurado</dt><dd>${fP(r.f*100,0)}% dos votos esperados</dd><dt>Municípios com votos</dt><dd>${fN(r.nRep)} de ${fN(PJ.tot||5570)}</dd><dt>Variação média vs. 2022</dt><dd>${r.swing>=0?"+":"−"}${fP(Math.abs(r.swing*100),1)} p.p. para ${esc(nmA)}</dd></dl>
+    <p class="note">Conta feita nesta página, não é número oficial do TSE. Cada cidade apurada é comparada ao 2º turno de 2022; o que falta é estimado pela variação da própria cidade, do estado ou do país. Atualizado às ${r.t.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}.</p>`;
+}
+setInterval(()=>{if(!document.hidden)projLoop()},180000);
+
 /* ================= ciclo ================= */
 let lastMapSig="";
 function go(){
@@ -706,7 +804,7 @@ function go(){
   if(sig!==lastMapSig){lastMapSig=sig;drawMap()}else{markSel();paintAll()}
   renderAll();refresh();
 }
-function renderAll(){drawStatus();renderLead();renderChart();renderSide();renderFeed();labelsUpd();markSel()}
+function renderAll(){drawStatus();renderLead();renderProj();renderChart();renderSide();renderFeed();labelsUpd();markSel()}
 let busy=false;
 async function refresh(){
   if(busy)return;busy=true;
@@ -732,6 +830,7 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()}
 cmLoad().catch(()=>{});
 $("turnoTag").textContent=T2?"2º turno":"1º turno";
 go();
+projLoop();
 </script>
 </body>
 </html>
