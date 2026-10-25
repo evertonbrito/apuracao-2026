@@ -202,7 +202,7 @@ footer a{color:var(--ink2)}
 </head>
 <body>
 <header>
-  <div class="brand">Apuração 2026</div>
+  <div class="brand">Apuração 2026 <span id="turnoTag" style="font-size:.62em;color:var(--muted)"></span></div>
   <nav class="seg" id="cargos" aria-label="Cargo"></nav>
   <label class="search" aria-label="Buscar cidade">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -261,7 +261,8 @@ const NOME_CARGO={1:"Presidente",3:"Governador",5:"Senado",6:"Deputado federal"}
 const SEG_TURNO="25 de outubro";
 const qs=new URLSearchParams(location.search);
 const SIM=qs.get("sim")==="1";
-const ENV=SIM?{base:"https://resultados-sim.tse.jus.br/simulado/simulado2026/ele2026",fed:21270,est:21272}:{base:"https://resultados.tse.jus.br/oficial/ele2026",fed:6257,est:6259};
+const T2=qs.get("t")!=="1";
+const ENV=SIM?{base:"https://resultados-sim.tse.jus.br/simulado/simulado2026/ele2026",fed:21270,est:21272,fed2:21270,est2:21272}:{base:"https://resultados.tse.jus.br/oficial/ele2026",fed:6257,est:6259,fed2:6258,est2:6260};
 const ROTAS=[{nome:"TSE direto",f:u=>u,ms:12000},{nome:"via allorigins",f:u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),ms:40000}];
 const $=id=>document.getElementById(id);
 const pad=(n,k)=>String(n).padStart(k,"0");
@@ -271,7 +272,7 @@ function cands(d){
   const out=[];
   (function w(o,p){if(!o||typeof o!=="object")return;if(Array.isArray(o)){o.forEach(x=>w(x,p));return}
     const pp=o.sg||(o.cand&&o.nm)||p;
-    if(Array.isArray(o.cand))o.cand.forEach(c=>out.push({n:String(c.n),sq:c.sqcand||c.sq||"",nome:c.nmu||c.nm||"—",partido:c.cc||pp||"",votos:num(c.vap),pct:num(c.pvap),st:(c.st||"").trim(),eleito:c.e==="s"}));
+    if(Array.isArray(o.cand))o.cand.forEach(c=>out.push({n:String(c.n),sq:c.sqcand||c.sq||"",nome:c.nmu||c.nm||"—",partido:c.cc||pp||"",votos:num(c.vap),pct:num(c.pvap),st:(c.st||"").trim(),eleito:c.e==="s"&&!/turno/i.test(c.st||"")}));
     for(const[k,v]of Object.entries(o))if(k!=="cand"&&v&&typeof v==="object")w(v,pp)})(d,"");
   const seen=new Set();
   return out.filter(c=>{const k=c.n+"|"+c.nome;if(seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>(b.votos||0)-(a.votos||0));
@@ -287,7 +288,8 @@ const ini=n=>String(n).split(/\s+/).filter(Boolean).slice(0,2).map(s=>s[0]).join
 const CORES={PL:"#4361ee",PT:"#e5383b",REPUBLICANOS:"#2ec4b6",PSOL:"#d6457a",PSD:"#e9b949",MDB:"#3fae6a",UNIAO:"#22a6c9",PP:"#7aa5ff",PSDB:"#9bc1ff",PSB:"#f08a3c",PDT:"#c4473f",NOVO:"#ff9f1c",REDE:"#29b39a",PODE:"#8f6ee0",PCDOB:"#b9312c",AVANTE:"#18a0a8",SOLIDARIEDADE:"#f28c28",PV:"#62b357",CIDADANIA:"#c2569a",PRD:"#5a63c9",DC:"#5d8de8",UP:"#c23b3b",PCO:"#a32a2a",PSTU:"#cf3e3e",MOBILIZA:"#9b59b6",AGIR:"#2a9d8f",PMB:"#a1887f",MISSAO:"#c77dff"};
 function cor(p){const k=semAcento(p).replace(/\s+/g,"");if(CORES[k])return CORES[k];let h=0;for(const ch of k)h=(h*31+ch.charCodeAt(0))%360;return `hsl(${h} 55% 58%)`}
 function fotoErr(img,t){if(!img.dataset.p){img.dataset.p=1;img.src="https://api.allorigins.win/raw?url="+encodeURIComponent(img.src)}else img.parentNode.textContent=t}
-const codeOf=cargo=>cargo===1?ENV.fed:ENV.est;
+const codeOf=cargo=>cargo===1?(T2?ENV.fed2:ENV.fed):(cargo===3&&T2?ENV.est2:ENV.est);
+const TURNO=c=>(c===1||c===3)?(T2?" · 2º turno":" · 1º turno"):" · 1º turno";
 const arq=(cargo,abr,uf)=>{const c=codeOf(cargo);return `${ENV.base}/${c}/dados/${uf}/${abr}-c${pad(cargo,4)}-e${pad(c,6)}-u.json`};
 const fotoUrl=(cargo,uf,sq)=>sq?`${ENV.base}/${codeOf(cargo)}/fotos/${uf}/${sq}.jpeg`:"";
 const ph=(c,cargo,uf)=>{const u=fotoUrl(cargo,uf,c.sq);return `<div class="ph">${u?`<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="fotoErr(this,'${esc(ini(c.nome))}')">`:esc(ini(c.nome))}</div>`};
@@ -319,6 +321,7 @@ function resumo(d){const l=cands(d);return{
   st:num(deep(d,["st"])),ts:num(deep(d,["ts"])),nv:num(deep(d,["nv"])),top:l.slice(0,12)}}
 async function fetchOne(cargo,abr,uf,maxAge){
   const k=key(cargo,abr),e=DB[k];if(e&&maxAge&&Date.now()-e.t<maxAge)return e;
+  if(e&&e.err==="404"&&Date.now()-e.t<600000)return e;
   try{const d=await getJSON(arq(cargo,abr,uf));const prev=DB[k];DB[k]={t:Date.now(),r:resumo(d)};onNew(cargo,abr,prev&&prev.r,DB[k].r);return DB[k]}
   catch(err){if(!DB[k])DB[k]={t:Date.now(),r:null,err:err.status===404?"404":"erro"};else DB[k].t=Date.now();return DB[k]}
 }
@@ -327,8 +330,8 @@ const persist=()=>save("v2",{cargo:S.cargo,uf:S.uf,geo:S.geo,mode:S.mode});
 const R=(cargo,abr)=>DB[key(cargo,abr)]?.r;
 
 /* ================= histórico e atualizações ================= */
-const HK="v2h:"+(SIM?"s":"o");
-const FK="v2f:"+(SIM?"s":"o");
+const HK="v2h:"+(SIM?"s":"o")+(T2?":t2":"");
+const FK="v2f2:"+(SIM?"s":"o")+(T2?":t2":"");
 let FEED=load(FK,[]);
 function onNew(cargo,abr,old,nw){
   if(!nw||!nw.top.length)return;
@@ -423,7 +426,7 @@ function renderLead(){
   if(cargo===6&&!S.uf)S.uf="sp";
   const abr=S.city||S.uf||"br",uf=S.uf||"br";const r=R(cargo,abr);
   const back=S.city?`<button class="back" data-back="uf">${esc(UF_NOME[S.uf.toUpperCase()])}</button>`:S.uf&&cargo!==6?`<button class="back" data-back="br">${cargo===1?"Brasil":"Todos os estados"}</button>`:"";
-  const kick=`<div class="kicker"><span>${NOME_CARGO[cargo]} · ${esc(lugar())}${back?" · "+back:""}</span>${r&&r.top.length?statusPill(r,cargo):""}</div>`;
+  const kick=`<div class="kicker"><span>${NOME_CARGO[cargo]}${TURNO(cargo)} · ${esc(lugar())}${back?" · "+back:""}</span>${r&&r.top.length?statusPill(r,cargo):""}</div>`;
   if(!r){const e=DB[key(cargo,abr)];el.innerHTML=kick+`<p class="msg${e&&e.err?" err":""}" style="margin-top:16px">${e&&e.err==="404"?"O TSE ainda não publicou este arquivo.":e&&e.err?"Não consegui ler este arquivo do TSE agora. Tentando de novo em instantes.":"Carregando…"}</p>`;return}
   if(!r.top.length){el.innerHTML=kick+`<p class="msg" style="margin-top:16px">Ainda sem votos publicados aqui.</p>`;return}
   if(cargo===6){
@@ -445,11 +448,11 @@ function resumoNacional(cargo){
   for(const u of ufs){const r=R(cargo,u);if(!r||!r.top.length||!(r.top[0].votos>0))continue;n++;pst+=r.pst||0;
     for(let i=0;i<vag;i++)if(r.top[i])lead.push(r.top[i].partido);
     el+=r.top.filter(c=>c.eleito||/^eleit/i.test(c.st)).length;if(r.top.filter(c=>/2º|turno/i.test(c.st)).length>=2)t2++}
-  const kick=`<div class="kicker"><span>${cargo===5?"Senado":"Governadores"} · Brasil</span>${n?`<span class="pill"><i style="background:var(--live)"></i>${fP(pst/n,1)}% apurado</span>`:""}</div>`;
+  const kick=`<div class="kicker"><span>${cargo===5?"Senado":"Governadores"}${TURNO(cargo)} · Brasil</span>${n?`<span class="pill"><i style="background:var(--live)"></i>${fP(pst/n,1)}% apurado</span>`:""}</div>`;
   if(!n)return kick+`<p class="msg" style="margin-top:16px">Carregando os ${27} estados…</p>`;
   const cnt={};lead.forEach(p=>cnt[p]=(cnt[p]||0)+1);const ord=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
   const p0=ord[0];
-  const head=cargo===5?`<b style="--pc:${cor(p0[0])}">${esc(p0[0])}</b> lidera em ${p0[1]} das ${tot} vagas do Senado`:`<b style="--pc:${cor(p0[0])}">${esc(p0[0])}</b> lidera em ${p0[1]} dos 27 estados`;
+  const head=cargo===5?`<b style="--pc:${cor(p0[0])}">${esc(p0[0])}</b> lidera em ${p0[1]} das ${tot} vagas do Senado`:`<b style="--pc:${cor(p0[0])}">${esc(p0[0])}</b> lidera em ${p0[1]} dos ${T2?n+" estados com 2º turno":"27 estados"}`;
   return kick+`<h2 class="head">${head}</h2>
     <div class="seats">${ord.map(([p,c])=>`<span style="--pc:${cor(p)};flex:${c}" title="${esc(p)}: ${c}"></span>`).join("")}${lead.length<tot?`<span class="o" style="flex:${tot-lead.length}"></span>`:""}</div>
     <div class="plegend">${ord.map(([p,c])=>`<span style="--pc:${cor(p)}"><i></i>${esc(p)} <b class="num">${c}</b></span>`).join("")}</div>
@@ -492,13 +495,13 @@ function renderSide(){
       for(const u of ufs){const r=R(1,u.toLowerCase());if(!r)continue;ok++;r.top.forEach(c=>{tot[c.n]=(tot[c.n]||0)+(c.votos||0);info[c.n]=c});vt+=r.vt;pstS+=(r.pst||0)*(r.ts||1);ts+=(r.ts||1)}
       if(!ok||!vt){rows.push({nome,vazio:true});continue}
       const best=Object.entries(tot).sort((a,b)=>b[1]-a[1])[0];const c=info[best[0]],pct=best[1]/vt*100;
-      let d=NaN;if(D22){let v=0,t=0;for(const u of ufs){const x=D22.uf?.[u]?.["1"];if(!x)continue;for(const[nr,vv]of Object.entries(x)){t+=vv;if(D22.cand?.[nr]?.[1]&&semAcento(D22.cand[nr][1])===semAcento(c.partido))v+=vv}}if(t&&v)d=pct-v/t*100}
+      let d=NaN;if(D22){let v=0,t=0;for(const u of ufs){const y=D22.uf?.[u];const x=T2?(y&&y["2"]?{13:y["2"][0],22:y["2"][1]}:null):y?.["1"];if(!x)continue;for(const[nr,vv]of Object.entries(x)){t+=vv;if(D22.cand?.[nr]?.[1]&&semAcento(D22.cand[nr][1])===semAcento(c.partido))v+=vv}}if(t&&v)d=pct-v/t*100}
       rows.push({nome,c,pct,pst:pstS/ts,d});
     }
     const z=R(1,"zz");if(z&&z.top.length)rows.push({nome:"Exterior",c:z.top[0],pct:z.top[0].pct,pst:z.pst,d:NaN,zz:true});
     el.innerHTML=`<div class="kicker" style="margin-bottom:8px"><h3>Por região</h3><span>Quem lidera para presidente</span></div>`+rows.map(o=>o.vazio?`<div class="reg"><b>${o.nome}</b><span class="muted">carregando…</span><small></small></div>`:
       `<div class="reg" style="--pc:${cor(o.c.partido)}"><b>${o.zz?"🌐 ":""}${o.nome}</b><span class="lead">${ph(o.c,1,o.zz?"zz":"br")}<em>${esc(o.c.partido)}</em><span class="num">${fP(o.pct,1)}%</span><small class="num">${isNaN(o.d)?"":(o.d>=0?"+":"−")+fP(Math.abs(o.d),1)}</small></span><small class="num">${fP(o.pst,0)}%</small><span class="mini"><i style="width:${Math.min(100,o.pct)}%"></i></span></div>`).join("")+
-      `<p class="note">Percentual de votos válidos do líder na região. Ao lado, a variação em pontos do mesmo partido em relação ao 1º turno de 2022.</p>`;
+      `<p class="note">Percentual de votos válidos do líder na região. Ao lado, a variação em pontos do mesmo partido em relação ao ${T2?"2º":"1º"} turno de 2022.</p>`;
     return;
   }
   // governador, senado, deputados: placar por partido
@@ -727,6 +730,7 @@ setInterval(()=>{if(!document.hidden)refresh()},30000);
 setInterval(drawStatus,60000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
 cmLoad().catch(()=>{});
+$("turnoTag").textContent=T2?"2º turno":"1º turno";
 go();
 </script>
 </body>
